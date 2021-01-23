@@ -1,10 +1,16 @@
 from Indicators import *
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("INDICATOR GENERATOR")
 
 def generate_technical_indicators(
         df:pd.DataFrame,
         price_column:str,
         volume_column:str,
         volume_seed:float=10000.0):
+    
+    logger.info("Generating metadata.")
     price_data = df[price_column].values
     volume_data = df[volume_column].values
     # Sice we have only total traded volume in a 24 hour period. We take a
@@ -20,6 +26,7 @@ def generate_technical_indicators(
     kline_period = 60
 
     #------------------------------------------------------------------------#
+    logger.info("Generate Average True Rating")
     atr = average_true_rating(
         data=price_data,
         window=kline_period,
@@ -32,6 +39,7 @@ def generate_technical_indicators(
 
     #------------------------------------------------------------------------#
     # Balance of power, its SMA, and the derivative of the SMA
+    logger.info("Generate Balance of Power")
     bop = balance_of_power(
         data=price_data,
         period=kline_period,
@@ -46,6 +54,7 @@ def generate_technical_indicators(
     output_data = np.append(output_data,ddx_bop.reshape(1,-1),axis=0)
 
     #------------------------------------------------------------------------#
+    logger.info("Generate Accumulatrion Distribution Line")
     adl = accumulation_distribution_line(
         price_data=price_data,
         volume_data=volume_data,
@@ -55,6 +64,7 @@ def generate_technical_indicators(
     output_data = np.append(output_data,adl.reshape(1,-1),axis=0)
 
     #------------------------------------------------------------------------#
+    logger.info("Generate Ulcer Index")
     ulcer = ulcer_index(data=price_data,period=kline_period*2)
     ulcer_normal = simple_moving_average(ulcer,kline_period*2*8)
     ulcer_diff = ulcer_normal-ulcer
@@ -65,6 +75,7 @@ def generate_technical_indicators(
     output_data = np.append(output_data,ulcer_diff.reshape(1,-1),axis=0)
 
     #------------------------------------------------------------------------#
+    logger.info("Generate Stochastic Oscillator")
     stochastic = stochastic_oscillator(
         data=price_data,
         period=kline_period*10)
@@ -77,6 +88,7 @@ def generate_technical_indicators(
     output_data = np.append(output_data,stochastic_diff.reshape(1,-1),axis=0)
 
     #------------------------------------------------------------------------#
+    logger.info("Generate Relative Strength Index")
     rsi = relative_strength_index(data=price_data,periods=28)
     rsi_oversold = np.repeat(30,len(rsi)) - rsi
     rsi_overbought = rsi - np.repeat(70,len(rsi))
@@ -87,7 +99,7 @@ def generate_technical_indicators(
     output_data = np.append(output_data,rsi_overbought.reshape(1,-1),axis=0)
 
     #------------------------------------------------------------------------#
-
+    logger.info("Generate MACD")
     macd_line,signal,histogram = mean_average_convergance_divergance(
         data=price_data,
         fast_window=kline_period*4,
@@ -109,7 +121,7 @@ def generate_technical_indicators(
     output_data = np.append(output_data,signal.reshape(1,-1),axis=0)
 
     #------------------------------------------------------------------------#
-
+    logger.info("Generate Bollinger Bands")
     upper,middle,lower,bandwidth,percentB = bollinger_bands(
         data=price_data,
         window=kline_period*20)
@@ -120,14 +132,14 @@ def generate_technical_indicators(
     output_data = np.append(output_data,percentB.reshape(1,-1),axis=0)
 
     #------------------------------------------------------------------------#
-
+    logger.info("Generate On Balance Volume")
     obv = on_balance_volume(data=volume_data,period=10)
 
     column_names.append("obv")
     output_data = np.append(output_data,obv.reshape(1,-1),axis=0)
     
     #------------------------------------------------------------------------#
-
+    logger.info("Generate Adaptive Moving Average")
     kama_short = kaufman_adaptive_moving_average(
         data=price_data,
         er_period=kline_period*10,
@@ -152,8 +164,6 @@ def generate_technical_indicators(
     output_data = np.append(output_data,kama_long.reshape(1,-1),axis=0)
 
     #------------------------------------------------------------------------#
-    print("Shape",output_data.shape)
-
     return pd.DataFrame(output_data.T,columns=column_names)
 
 def main():
@@ -162,9 +172,10 @@ def main():
         df=raw_data,
         price_column="best_ask",
         volume_column="total_traded_asset")
-    work_data = pd.concat([raw_data[["timestamp","best_ask","best_bid"]],indicators],axis=1)
+    work_data = pd.concat(
+        [raw_data[["timestamp","best_ask","best_bid"]],
+        indicators],axis=1)
     work_data.dropna(how='any',inplace=True)
-
     work_data.to_csv("./indicator_data.csv")
 
 if __name__ == "__main__":
