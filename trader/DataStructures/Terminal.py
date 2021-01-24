@@ -10,12 +10,17 @@ class Terminal(BaseNode):
         self._isfixed = is_fixed
 
     @staticmethod
-    def terminal_from_dict(data:Dict,fixed:bool=False)->Terminal:
+    def terminal_from_dict(data:Dict)->Terminal:
         if data["type"] == "TERMINAL":
-            return Terminal(var_name=data["variable"],is_fixed=fixed)
+            return Terminal(
+                var_name=data["variable"],
+                is_fixed=data["fixed"])
 
     def node_as_dict(self)->Dict:
-        return {"type": "TERMINAL","variable": self._variable}
+        return {
+            "type":"TERMINAL",
+            "variable":self._variable,
+            "fixed":self._isfixed}
 
     def __repr__(self):
         return F"{self._variable}"

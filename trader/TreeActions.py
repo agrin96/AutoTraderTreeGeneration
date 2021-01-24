@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List
+from typing import List,Union
 import json
 import numpy as np
 
@@ -93,7 +93,8 @@ def get_node(node:Node,of_depth:int=1,_depth:int=1,_nodes:List[Node]=[])->Node:
 def get_random_node(node:Node,_depth:int=1,_nodes:List[Node]=[])->Node:
     """Chose a random node from all nodes in this tree excluding the root. If 
     the random node is a fixed node, then it will traverse up and return the 
-    root of the fixed part."""
+    root of the fixed part so that we only ever change the entire fixed section.
+    """
     if _depth == 1:
         _nodes = []
     
@@ -184,3 +185,23 @@ def list_tree_terminals(node:Node,_depth:int=1,_terminals:List[str]=[])->[str]:
     
     if _depth == 1:
         return list(set(_terminals))
+
+
+def clone_node(node:Union[Node,Terminal],deep:bool=True)->Node:
+    """Clone the provided node traversing down its children if deep enabled.
+    Parameters:
+        deep (bool): If False will only copy the node without any children"""
+    copy = None
+    if isinstance(node,Node):
+        copy = Node.node_from_dict(node.node_as_dict())
+    else:
+        copy = Terminal.terminal_from_dict(node.node_as_dict())
+    
+    if not deep:
+        return copy
+
+    if isinstance(node,Node):
+        for child in node.children():
+            copy.add_child(clone_node(child,deep))
+
+    return copy

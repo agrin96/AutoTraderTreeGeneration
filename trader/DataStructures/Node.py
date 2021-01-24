@@ -6,6 +6,7 @@ import uuid
 
 from Common import random_choice
 from .BaseNode import BaseNode
+from .Terminal import Terminal
 
 class Node(BaseNode):
     def __init__(self,var_name:str,initial_threshold:float,is_fixed:bool=False):
@@ -21,7 +22,7 @@ class Node(BaseNode):
             return Node(
                 var_name=data["variable"],
                 initial_threshold=data["threshold"],
-                is_fixed=fixed)
+                is_fixed=data["fixed"])
 
 
     def evaluate(self,data:Dict)->Node:
@@ -36,7 +37,8 @@ class Node(BaseNode):
         return {
             "type": "NODE",
             "variable": self._variable,
-            "threshold": self._threshold}
+            "threshold": self._threshold,
+            "fixed":self._isfixed}
 
 
     def add_child(self,node:Union[Node,Terminal],index:int=-1):

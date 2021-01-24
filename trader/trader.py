@@ -27,6 +27,7 @@ from TreeActions import (
 from TreeIO import serialize_tree,deserialize_tree
 from TreeEvaluation import evaluate_tree
 from TreeMutation import point_mutate
+from TreeCrossover import crossover_reproduction
 
 
 def prepare_data(data_path:str):
@@ -36,17 +37,34 @@ def prepare_data(data_path:str):
 
 
 def main():
-    df = prepare_data(data_path="../indicators.csv")
+    df = prepare_data(data_path="../test_indicator_data.csv")
     # tree = create_tree(terminals=["BUY","HOLD"],data=df,depth=2,unique_nodes=True)
-    tree = create_sell_tree(data=df)
-    pprint_tree(tree)
+    # tree1 = create_sell_tree(data=df)
+    # pprint_tree(tree1)
 
-    vars_set = create_initial_variables(data=df)
-    vars_set.update({"bought_price":20000})
-    # point_mutate(tree,variables=vars_set,terminals=["SELL","HOLD"])
-    for i in range(100):
-        point_mutate(tree,variables=vars_set,terminals=["SELL","HOLD"])
-    pprint_tree(tree)
+    tree1 = create_buy_tree(data=df,depth=3)
+    print("TreeA")
+    pprint_tree(tree1)
+    
+    tree2 = create_buy_tree(data=df,depth=3)
+    print("TreeB")
+    pprint_tree(tree2)
+
+    child1,child2 = crossover_reproduction(treeA=tree1,treeB=tree2,probability=1)
+
+    print("child1")
+    pprint_tree(child1)
+    print("child2")
+    pprint_tree(child2)
+    
+
+
+    # vars_set = create_initial_variables(data=df)
+    # vars_set.update({"bought_price":20000})
+
+    # for i in range(100):
+    #     point_mutate(tree,variables=vars_set,terminals=["SELL","HOLD"])
+    # pprint_tree(tree)
 
     # serial = serialize_tree(tree)
     # pprint_tree(deserialize_tree(serial))

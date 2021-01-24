@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List,Union
+from typing import List,Union,Dict
 import pandas as pd
 import numpy as np
 import uuid
@@ -10,7 +10,7 @@ from DataStructures.Terminal import Terminal
 from TreeActions import tree_depth,get_node,replace_node
 
 def create_initial_variables(data:pd.DataFrame)->Dict[str]:
-    """Creates a mapping of column names of the data to thier mean values which
+    """Creates a mapping of column names of the data to their mean values which
     will be used as the initial threshold."""
     variables = data.columns.tolist()
     values = [data[v].mean() for v in variables]
