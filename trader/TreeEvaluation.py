@@ -10,14 +10,14 @@ from DataStructures.Terminal import Terminal
 from TreeActions import tree_depth,get_node,replace_node
 
 
-def evaluate_tree(node:Node,substitutions:Dict)->str:
+def make_decision(node:Node,substitutions:Dict)->str:
     """Evaluates a single instance of substitution data on the tree specified.
     Returns the single decision result of the evaluation."""
     if isinstance(node,Terminal):
         return str(node)
     
     next_node = node.evaluate(substitutions)
-    return evaluate_tree(next_node,substitutions)
+    return make_decision(next_node,substitutions)
 
 
 def step_thresholds(tree:Node,generation:int,step_percent:float):

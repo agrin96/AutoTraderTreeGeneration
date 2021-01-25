@@ -4,14 +4,14 @@ import pandas as pd
 import numpy as np
 import uuid
 
-from Common import random_choice
+from Common import random_choice,parse_configuration
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
 from CreateTree import (
+    create_initialization_variables,
     create_tree,
     create_buy_tree,
     create_sell_tree,
-    create_initial_variables,
     create_stump)
 
 from TreeActions import (
@@ -25,28 +25,97 @@ from TreeActions import (
     replace_node)
 
 from TreeIO import serialize_tree,deserialize_tree
-from TreeEvaluation import evaluate_tree
+from TreeEvaluation import make_decision
 from TreeMutation import point_mutate
 from TreeCrossover import crossover_reproduction
 
+import argparse
+import os
 
-def prepare_data(data_path:str):
+from itertools import repeat
+from multiprocessing import Pool
+from math import ceil
+from time import time
+reusable_pool = {"pool": None,"workers": 0}
+
+def start_pool(config_data:Dict)->int:
+    """Initializes a process pool with the number of processes specified in the
+    config.
+    Returns the number or processes initialized"""
+    global reusable_pool
+    procs = config_data["process_pool_size"]\
+            if "process_pool_size" in config_data\
+            else 1
+
+    reusable_pool["pool"] = Pool(processes=procs)
+    reusable_pool["workers"] = procs
+    return procs
+
+
+def prepare_raw_data(data_path:str,config_data:Dict)->pd.DataFrame:
+    """Read in the specified data and select only the variables used in the
+    in the creation of trees. Also clean up the index column if it exists
+    Parameters:
+        config_data (Dict): Configuration data for this run."""
     df = pd.read_csv(data_path)
-    df.drop("Unnamed: 0",inplace=True,axis=1)
-    return df
+    if "Unnamed: 0" in df.columns:
+        df.drop("Unnamed: 0",inplace=True,axis=1)
+
+    if "variables" in config_data:
+        return df[config_data["variables"]]
+    else:
+        return df
 
 
-def main():
-    df = prepare_data(data_path="../test_indicator_data.csv")
+def initialize_buysell_trees(config_data:Dict,data:pd.DataFrame)->List[Dict]:
+    """Initialize a population of trees. Note that a combination of a buy and
+    a sell tree is considered a sinlge population member since both actions
+    depend on eachother. An initial population of 100 results in 200 trees."""
+    global reusable_pool
+    if not reusable_pool["pool"]:
+        raise RuntimeError("The process pool was not initialized properly.")
+
+    initial_population = config_data["initial_population"]\
+                         if "initial_population" in config_data\
+                         else 1
+    buy_node_depth = config_data["initial_buy_node_depth"]\
+                    if "initial_buy_node_depth" in config_data\
+                    else 3
+    sell_node_depth = config_data["initial_sell_node_depth"]\
+                    if "initial_sell_node_depth" in config_data\
+                    else 3
+
+    variables = create_initialization_variables(data)
+    args = [[variables.copy(),buy_node_depth] 
+            for _ in range(initial_population)]
+    buy_trees = reusable_pool["pool"].starmap(create_buy_tree,args)
+
+    args = [[variables.copy(),sell_node_depth] 
+            for _ in range(initial_population)]
+    sell_trees = reusable_pool["pool"].starmap(create_sell_tree,args)
+
+    return [{"buy":b,"sell":s} for b,s in zip(buy_trees,sell_trees)]
+
+
+
+def main(config):
+    df = prepare_raw_data(
+        data_path=config["data_file_path"],
+        config_data=config)
+
+    population = initialize_buysell_trees(config_data=config,data=df)
+    for p in population:
+        print(p)
+    return
     # tree = create_tree(terminals=["BUY","HOLD"],data=df,depth=2,unique_nodes=True)
     # tree1 = create_sell_tree(data=df)
     # pprint_tree(tree1)
 
-    tree1 = create_buy_tree(data=df,depth=3)
+    tree1 = create_buy_tree(data=df,depth=4)
     print("TreeA")
     pprint_tree(tree1)
     
-    tree2 = create_buy_tree(data=df,depth=3)
+    tree2 = create_buy_tree(data=df,depth=4)
     print("TreeB")
     pprint_tree(tree2)
 
@@ -73,4 +142,12 @@ def main():
     # print(Node(var_name="percent_b",df=df))
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description='Train AutoTrading Genetic Algorithm')
+    parser.add_argument('--config',type=str,dest="config",
+                        help='Genetic Algorithm Configuration file',
+                        required=True)
+    config_path = parser.parse_args().config
+    config = parse_configuration(os.path.abspath(config_path))
+    print("Processes: ",start_pool(config))
+    main(config)

@@ -19,13 +19,25 @@ def point_mutate(
         variables:Dict[str],
         terminals:List[str],
         unique:bool=True,
-        probability:float=0.5):
+        probability:float=0.5,
+        mutation_types:Dict={
+            "replace":0.50,
+            "insert_node":0.25,
+            "insert_terminal":0.25
+        }):
     """Execute a point mutation on the tree with the given probability of a 
     mutation occuring at all. Three types of mutations can take place. 
     The first replaces a node or adds a stump (addition). The second replaces 
     a node with a terminal (deletion). And the third modifies a threshold or
     changes a terminal type (modification). Note the thid doesn't change the
     tree structure.
+    Parameters:
+        unique (bool): Whether to make sure that all variables in the tree are
+            unique (sampled without replacement) when mutating.
+        probability (float): Liklihood of mutation occuring at all.
+        mutation_types (Dict): A dictionary indicating the likelihood of each
+            variant of mutation described above occuring. Setting to 0 means
+            that mutation type will never occur.
     """
     if not random_choice(prob_true=probability):
         return
@@ -36,21 +48,24 @@ def point_mutate(
         used_variables = list_tree_variables(node,with_threshold=True)
         all(map(unused_variables.pop,[*used_variables]))
 
+        if len(list(used_variables.keys())) <= 1:
+            return
+
     chosen = get_random_node(node)
 
     if chosen.is_fixed():
         insert_node(chosen,unused_variables,terminals)
         return
     
-    if random_choice(prob_true=0.50):
+    if random_choice(prob_true=mutation_types["replace"]):
         replace_with_node(chosen,unused_variables,terminals)
         return
 
-    if random_choice(prob_true=0.25):
+    if random_choice(prob_true=mutation_types["insert_node"]):
         insert_node(chosen,unused_variables,terminals)
         return
 
-    if random_choice(prob_true=0.25):
+    if random_choice(prob_true=mutation_types["insert_terminal"]):
         replace_with_terminal(chosen,terminals)
         return
     
