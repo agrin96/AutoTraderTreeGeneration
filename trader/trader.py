@@ -31,12 +31,9 @@ from TreeCrossover import crossover_reproduction
 
 import argparse
 import os
-
-from itertools import repeat
 from multiprocessing import Pool
-from math import ceil
-from time import time
-reusable_pool = {"pool": None,"workers": 0}
+
+reusable_pool = None
 
 def start_pool(config_data:Dict)->int:
     """Initializes a process pool with the number of processes specified in the
@@ -47,8 +44,7 @@ def start_pool(config_data:Dict)->int:
             if "process_pool_size" in config_data\
             else 1
 
-    reusable_pool["pool"] = Pool(processes=procs)
-    reusable_pool["workers"] = procs
+    reusable_pool = Pool(processes=procs)
     return procs
 
 
@@ -72,7 +68,7 @@ def initialize_buysell_trees(config_data:Dict,data:pd.DataFrame)->List[Dict]:
     a sell tree is considered a sinlge population member since both actions
     depend on eachother. An initial population of 100 results in 200 trees."""
     global reusable_pool
-    if not reusable_pool["pool"]:
+    if not reusable_pool:
         raise RuntimeError("The process pool was not initialized properly.")
 
     initial_population = config_data["initial_population"]\
@@ -88,13 +84,14 @@ def initialize_buysell_trees(config_data:Dict,data:pd.DataFrame)->List[Dict]:
     variables = create_initialization_variables(data)
     args = [[variables.copy(),buy_node_depth] 
             for _ in range(initial_population)]
-    buy_trees = reusable_pool["pool"].starmap(create_buy_tree,args)
+    buy_trees = reusable_pool.starmap(create_buy_tree,args)
 
     args = [[variables.copy(),sell_node_depth] 
             for _ in range(initial_population)]
-    sell_trees = reusable_pool["pool"].starmap(create_sell_tree,args)
+    sell_trees = reusable_pool.starmap(create_sell_tree,args)
 
-    return [{"buy":b,"sell":s} for b,s in zip(buy_trees,sell_trees)]
+    return [{"buy":b,"sell":s,"state":"BUY","fitness":0.0} 
+            for b,s in zip(buy_trees,sell_trees)]
 
 
 
@@ -106,16 +103,16 @@ def main(config):
     population = initialize_buysell_trees(config_data=config,data=df)
     for p in population:
         print(p)
-    return
-    # tree = create_tree(terminals=["BUY","HOLD"],data=df,depth=2,unique_nodes=True)
-    # tree1 = create_sell_tree(data=df)
-    # pprint_tree(tree1)
 
-    tree1 = create_buy_tree(data=df,depth=4)
+    
+    return
+
+    vars_set = create_initialization_variables(df)
+    tree1 = create_buy_tree(variables=vars_set,depth=4)
     print("TreeA")
     pprint_tree(tree1)
     
-    tree2 = create_buy_tree(data=df,depth=4)
+    tree2 = create_buy_tree(variables=vars_set,depth=4)
     print("TreeB")
     pprint_tree(tree2)
 

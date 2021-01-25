@@ -205,3 +205,18 @@ def clone_node(node:Union[Node,Terminal],deep:bool=True)->Node:
             copy.add_child(clone_node(child,deep))
 
     return copy
+
+
+def set_node_threshold(node:Node,variable:str,new_threshold:float):
+    """Allows you to manually set the threshold of a specific nodes in a tree.
+    The variables are set by comparing the variable names."""
+    if isinstance(node,Node):
+        if node.get_variable() == variable:
+            node.set_threshold(new_threshold)
+            return True
+        first,second = node.children()
+        if set_node_threshold(first,variable,new_threshold):
+            return True
+        if set_node_threshold(second,variable,new_threshold):
+            return True
+    return False
