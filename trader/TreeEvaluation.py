@@ -17,11 +17,14 @@ def make_pop_decisions(pop:Dict,data:pd.DataFrame)->List[str]:
     Returns a list of decisions from the buy and sell trees."""
     subs = data.to_dict(orient="records")
     decisions = []
+    bought_price = 20000
     for sub in subs:
+        sub["bought_price"] = bought_price
         if pop["state"] == "BUY":
             decision = make_decision(pop["buy"],sub)
             if decision == "BUY":
-                set_node_threshold(pop["sell"],"bought_price",subs["best_ask"])
+                set_node_threshold(pop["sell"],"bought_price",sub["best_ask"])
+                bought_price = sub["best_ask"]
                 pop["state"] = "SELL"
         else:
             decision = make_decision(pop["sell"],sub)
@@ -54,6 +57,7 @@ def score_decisions(
     prev = "SELL"
     while idx < best_ask.shape[0]:
         if decisions[idx] == "HOLD":
+            idx += 1
             continue
 
         if prev == "SELL" and decisions[idx] == "BUY":
@@ -62,15 +66,18 @@ def score_decisions(
             # selling it right after buying it.
             current_balance = current_coin*best_bid[idx]*(1-fee)
             prev = "BUY"
+            idx += 1
             continue
 
         if prev == "BUY" and decisions[idx] == "SELL":
             current_balance = current_coin*best_bid[idx]*(1-fee)
             current_coin = 0
             prev = "SELL"
+            idx += 1
             continue
         # If we do a double buy or double sell nothing will happen since we
         # wouldnt have the funds in either case.
+        idx += 1
 
     return current_balance
 

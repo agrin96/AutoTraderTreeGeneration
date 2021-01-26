@@ -1,9 +1,10 @@
 {
     "process_pool_size":3,
-    "generations": 1,
+    "generations": 100,
     "initial_population":10,
     "max_population":10,
     "mutation_rate":0.5,
+    "unique_tree_variables": false,
     "mutation_types": {
         "replace":0.50,
         "insert_node":0.25,
@@ -19,7 +20,7 @@
     "threshold_step_percent":0.01,
     "train_percent_split":0.7,
     "split_type":"continuous",
-    "data_file_path":"../test_indicator_data.csv",
+    "data_file_path":"../indicator_data.csv",
     "variables":[
         "best_ask",
         "best_bid",

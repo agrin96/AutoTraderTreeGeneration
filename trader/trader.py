@@ -1,10 +1,15 @@
 from __future__ import annotations
-from typing import List,Union,Dict
+from typing import List,Union,Dict,Tuple
 import pandas as pd
 import numpy as np
 import uuid
 
-from Common import random_choice,parse_configuration
+from DataPrepare import (
+    prepare_raw_data,
+    continuos_train_test_split)
+from Common import (
+    random_choice,
+    parse_configuration)
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
 from CreateTree import (
@@ -25,7 +30,7 @@ from TreeActions import (
     replace_node)
 
 from TreeIO import serialize_tree,deserialize_tree
-from TreeEvaluation import make_decision
+from TreeEvaluation import make_pop_decisions,score_decisions
 from TreeMutation import point_mutate
 from TreeCrossover import crossover_reproduction
 
@@ -35,7 +40,8 @@ from multiprocessing import Pool
 
 reusable_pool = None
 
-def start_pool(config_data:Dict)->int:
+
+def start_process_pool(config_data:Dict)->int:
     """Initializes a process pool with the number of processes specified in the
     config.
     Returns the number or processes initialized"""
@@ -46,21 +52,6 @@ def start_pool(config_data:Dict)->int:
 
     reusable_pool = Pool(processes=procs)
     return procs
-
-
-def prepare_raw_data(data_path:str,config_data:Dict)->pd.DataFrame:
-    """Read in the specified data and select only the variables used in the
-    in the creation of trees. Also clean up the index column if it exists
-    Parameters:
-        config_data (Dict): Configuration data for this run."""
-    df = pd.read_csv(data_path)
-    if "Unnamed: 0" in df.columns:
-        df.drop("Unnamed: 0",inplace=True,axis=1)
-
-    if "variables" in config_data:
-        return df[config_data["variables"]]
-    else:
-        return df
 
 
 def initialize_buysell_trees(config_data:Dict,data:pd.DataFrame)->List[Dict]:
@@ -94,17 +85,93 @@ def initialize_buysell_trees(config_data:Dict,data:pd.DataFrame)->List[Dict]:
             for b,s in zip(buy_trees,sell_trees)]
 
 
-
 def main(config):
     df = prepare_raw_data(
         data_path=config["data_file_path"],
         config_data=config)
-
-    population = initialize_buysell_trees(config_data=config,data=df)
-    for p in population:
-        print(p)
-
     
+    variables = create_initialization_variables(df)
+
+    train_split = config["train_percent_split"]\
+                  if "train_percent_split" in config\
+                  else 1
+    train_df,test_df = continuos_train_test_split(df,train_split)
+
+    population = initialize_buysell_trees(config_data=config,data=train_df)
+    
+    generations = config["generations"] if "generations" in config else 1
+    for i in range(generations):
+        print(F"Generation {i+1}")
+
+        # evaluate
+        args = zip(population,[train_df for _ in range(len(population))])
+        decisions = reusable_pool.starmap(make_pop_decisions,args)
+        
+        starting_funds = config["initial_funds"]\
+                         if "initial_funds" in config\
+                         else 100.0
+        trading_fee = config["trading_fee_percent"]\
+                         if "trading_fee_percent" in config\
+                         else 0.001
+        args = [
+            [starting_funds,
+            trading_fee,
+            dc,
+            train_df["best_bid"].values,
+            train_df["best_ask"].values] for dc in decisions]
+        balances = reusable_pool.starmap(score_decisions,args)
+        for balance,pop in zip(balances,population):
+            pop["fitness"] = balance
+        # speciate
+        for pop in population:
+            print(pop)
+
+        # cull
+            # cull the worst members of each subspecies
+
+        # reproduction
+        
+            # for each set of species carry out reproduction within species
+
+        # mutation
+        mutation_types = config["mutation_types"]\
+                if "mutation_types" in config\
+                else {"replace":0.50,"insert_node":0.25,"insert_terminal":0.25}
+
+        mutation_rate = config["mutation_rate"]\
+                if "mutation_rate" in config\
+                else 0.5
+        unique_tree_variables = config["unique_tree_variables"]\
+                if "unique_tree_variables" in config\
+                else False
+
+        buy_trees = [pop["buy"] for pop in population]
+        sell_trees = [pop["sell"] for pop in population]
+
+        buy_args = [
+            [pop["buy"],
+            variables.copy(),
+            ["BUY","HOLD"],
+            unique_tree_variables,
+            mutation_rate,
+            mutation_types.copy()] for pop in population]
+        sell_args = [
+            [pop["sell"],
+            variables.copy(),
+            ["SELL","HOLD"],
+            unique_tree_variables,
+            mutation_rate,
+            mutation_types.copy()] for pop in population]
+
+        pprint_tree(buy_trees[0])
+        pprint_tree(sell_trees[0])
+        buys_mutated = reusable_pool.starmap(point_mutate,buy_args)
+        sells_mutated = reusable_pool.starmap(point_mutate,sell_args)
+        pprint_tree(buys_mutated[0])
+        pprint_tree(sells_mutated[0])
+        
+    
+
     return
 
     vars_set = create_initialization_variables(df)
@@ -146,5 +213,5 @@ if __name__ == "__main__":
                         required=True)
     config_path = parser.parse_args().config
     config = parse_configuration(os.path.abspath(config_path))
-    print("Processes: ",start_pool(config))
+    print("Processes: ",start_process_pool(config))
     main(config)
