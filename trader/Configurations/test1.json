@@ -4,6 +4,7 @@
     "initial_population":10,
     "max_population":10,
     "mutation_rate":0.5,
+    "unique_tree_variables":false,
     "mutation_types": {
         "replace":0.50,
         "insert_node":0.25,

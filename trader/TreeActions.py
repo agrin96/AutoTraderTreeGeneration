@@ -52,8 +52,8 @@ def tree_depth(node:Node)->int:
 
 
 def count_nodes(node:Node,with_terminals:bool=True)->int:
-    """Returns the node count of the tree. Terminals are generally considered
-    nodes as well."""
+    """Returns the node count of the tree. Terminals are considered nodes as 
+    well."""
     if isinstance(node,Terminal):
         if with_terminals:
             return 1
@@ -62,6 +62,15 @@ def count_nodes(node:Node,with_terminals:bool=True)->int:
         first,second = node.children()
         return 1 + count_nodes(first,with_terminals)\
                  + count_nodes(second,with_terminals)
+
+
+def count_terminals(node:Node)->int:
+    """Count only the terminal nodes in this tree."""
+    if isinstance(node,Terminal):
+        return 1
+    else:
+        first,second = node.children()
+        return count_terminals(first) + count_terminals(second)
 
 
 def get_node(node:Node,of_depth:int=1,_depth:int=1,_nodes:List[Node]=[])->Node:
