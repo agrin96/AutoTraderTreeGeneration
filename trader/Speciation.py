@@ -1,9 +1,10 @@
 from __future__ import annotations
-from typing import List,Union,Dict
+from typing import List,Union,Dict,Tuple
 import json
 import numpy as np
+from multiprocessing import Pool
 
-from Common import random_choice,kdistance
+from Common import random_choice
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
 from TreeActions import (
@@ -12,25 +13,36 @@ from TreeActions import (
     tree_depth,
     list_tree_variables,
     pprint_tree)
-from multiprocessing import Pool
+from Clustering.kmeans import (
+    kmeans_clustering,
+    find_kmeans_k)
 
-def speciate(population:List[Dict],process_pool:Pool)->List[List]:
+
+def speciate_by_kmeans(population:List[Dict],process_pool:Pool)->List:
     if not process_pool:
         raise RuntimeError("Process pool was not initialized at speciation.")
     
-    buy_trees = [pop["buy"] for pop in population]
-    sell_trees = [pop["sell"] for pop in population]
+    population = process_pool.map(populate_points_for_pop,population)
 
-    buy_coordinates = process_pool.map(generate_coordinate_from_tree,buy_trees)
-    sell_coordinates = process_pool.map(generate_coordinate_from_tree,sell_trees)
+    args = [[population,"buy_point"],[population,"sell_point"]]
+    buy_k,sell_k = process_pool.starmap(find_kmeans_k,args)
 
-    for pop,bcoord,scoord in zip(population,buy_coordinates,sell_coordinates):
-        pop["bpoint"] = bcoord
-        pop["spoint"] = scoord
+    population = kmeans_clustering(population,"buy_point","buy_cluster",buy_k)
+    population = kmeans_clustering(population,"sell_point","sell_cluster",sell_k)
 
-    
+    return population
 
     
+def populate_points_for_pop(pop:Dict)->Dict:
+    """Generate coordinate points using internal metrics for both the buy
+    and the sell trees. The updated pop is returned to allow multiprocessing,
+    otherwise the pop is updated in place and return can be ignored."""
+    pop["buy_point"] = generate_coordinate_from_tree(pop["buy"])
+    pop["sell_point"] = generate_coordinate_from_tree(pop["sell"])
+    
+    return pop
+
+
 def structural_similarity(treeA:Node,treeB:Node)->float:
     """Traverses two trees simultaneously to determine their structural 
     similarity. For every node that is in the same position for two trees,
@@ -70,33 +82,9 @@ def generate_coordinate_from_tree(node:Node)->List:
         len(set(list_tree_variables(node)))]
 
 
-def generate_coordinate_from_buysell(buy:Node,sell:Node)->List:
+def generate_coordinate_from_pop(buy:Node,sell:Node)->List:
     """Generates a k-dimensional coordinate point using metadata from the buy
     and sell trees respectively. In this way we get a list of integers which
     can be used to compare buy_sell trees directly."""
     return [*generate_coordinate_from_tree(buy),
             *generate_coordinate_from_tree(sell)]
-
-
-def evenstep_clustering(values:np.array,max_distance:float):
-    """Executes a clustering based on distance values."""
-    clusters = []
-    centers = np.arange(values.min(),values.max(),max_distance)
-    if (centers[-1] + max_distance/2) < values.max():
-        centers = np.array([*centers,centers[-1]+max_distance])
-
-    for center in centers:
-        distances = np.abs(np.subtract(np.repeat(center,values.shape[0]),values))
-
-        # if 1 then we selected if 0 then we didnt
-        mask = np.where(distances<=max_distance/2,True,False)
-        clusters.append(values[mask])
-
-    if not np.array_equal(np.sort(values),np.sort(np.array([v for clus in clusters for v in clus]))):
-        raise RuntimeError("The two arrays are different")
-
-    if values.shape[0] != len([v for clus in clusters for v in clus]):
-        print("Original values: ",values.shape[0])
-        print("Clustered: ",len([v for clus in clusters for v in clus]))
-        raise RuntimeError("Different lengths") 
-    return clusters

@@ -30,7 +30,7 @@ from TreeActions import (
     get_random_node,
     replace_node)
 
-from Speciation import speciate
+from Speciation import speciate_by_kmeans
 
 from TreeIO import serialize_tree,deserialize_tree
 from TreeEvaluation import make_pop_decisions,score_decisions
@@ -77,8 +77,14 @@ def initialize_buysell_trees(config_data:Dict,data:pd.DataFrame)->List[Dict]:
     args = [[variables.copy(),sell_depth] for _ in range(initial_population)]
     sell_trees = reusable_pool.starmap(create_sell_tree,args)
 
-    return [{"buy":b,"sell":s,"state":"BUY","fitness":0.0} 
-            for b,s in zip(buy_trees,sell_trees)]
+    return [{
+        "buy":b,
+        "sell":s,
+        "state":"BUY",
+        "fitness":0.0,
+        "buy_cluster":-1,
+        "sell_cluster":-1} 
+        for b,s in zip(buy_trees,sell_trees)]
 
 
 def main(config):
@@ -119,10 +125,11 @@ def main(config):
 
 
         #  speciate
-        speciate(population,reusable_pool)
+        population = speciate_by_kmeans(population,reusable_pool)
         return
         # cull
             # cull the worst members of each subspecies
+            # Competition exists only within speciess
 
         # reproduction
         

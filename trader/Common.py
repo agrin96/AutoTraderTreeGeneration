@@ -4,25 +4,6 @@ import json
 import os
 
 
-def kdistance(kpointA:List[Any],kpointB:List[Any])->float:
-    """Return a euclidian distance between 2 k dimensional points in space.""" 
-    if len(kpointA) != len(kpointB):
-        raise RuntimeError(
-        "The dimensionality k-points must be the same, but encountered"\
-        F" {kpointA} and {kpointB}")
-    
-    return np.sqrt(np.sum(np.power(np.subtract(kpointA,kpointB),2)))
-
-
-def generate_full_matrix(a:List,b:List)->List[List]:
-    output = []
-    for ela in a:
-        subset = []
-        for elb in b:
-            subset.append(elb)
-        
-
-
 def random_choice(prob_true:float=0.5)->bool:
     return np.random.choice([True,False],p=[prob_true,1-prob_true])
 
