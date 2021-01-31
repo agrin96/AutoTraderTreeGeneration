@@ -13,15 +13,11 @@ def kdistance(kpointA:List[Any],kpointB:List[Any])->float:
     return np.sqrt(np.sum(np.power(np.subtract(kpointA,kpointB),2)))
 
 
-def find_kmeans_k(
-        population:List[Dict],
-        attribute:str,
-        search_distance_modifier:float=0.25)->int:
+def find_kmeans_k(population:List[Dict],
+                  search_distance_modifier:float=0.25)->int:
     """Calculate the k value to be used in k means clustering for the specific
     attribute in the population.
     Parameters:
-        attribute (str): The dictionary attribute containing the relavent
-            coordinate points we want to find the distances of.
         search_distance_modifier (float): Our base search distance is just the
             std deviation. This is the value it is multiplied by to adjust.
     Returns the number of clusters to create for the set of points under this
@@ -37,8 +33,8 @@ def find_kmeans_k(
                 continue
             else:
                 memo[F"{i}-{j}"] = kdistance(
-                    kpointA=population[i][attribute],
-                    kpointB=population[j][attribute])
+                    kpointA=population[i]["coordinate"],
+                    kpointB=population[j]["coordinate"])
     
     distances = list(memo.values())
     search_distance = np.std(distances)*search_distance_modifier
@@ -53,11 +49,7 @@ def find_kmeans_k(
     return output
 
 
-def kmeans_clustering(
-        population:List,
-        attribute:str,
-        cluster_label:str,
-        k:int)->List:
+def kmeans_clustering(population:List,k:int)->List:
     """Cluster the population using k means and return the population to allow
     for multiprocessing otherwise it is donein place.
     Parameters:
@@ -67,27 +59,27 @@ def kmeans_clustering(
         k (str): The number of clusters in the kmeans."""
     did_change = True
     centroids = np.random.randint(0,len(population),size=k)
-    centroids = [population[c][attribute] for c in centroids]
+    centroids = [population[c]["coordinate"] for c in centroids]
 
     while did_change:
         for i in range(len(population)):
             min_distance = (0,np.inf)
             for idx,point in enumerate(centroids):
-                current_distance = kdistance(population[i][attribute],point)
+                current_distance = kdistance(population[i]["coordinate"],point)
                 
                 if current_distance < min_distance[1]:
                     min_distance = (idx,current_distance)
             
-            if cluster_label in population[i]:
-                if population[i][cluster_label] == min_distance[0]:
+            if "cluster" in population[i]:
+                if population[i]["cluster"] == min_distance[0]:
                     did_change = False
                     continue
-            population[i][cluster_label] = min_distance[0]
+            population[i]["cluster"] = min_distance[0]
 
         new_centroids = []
         for c in range(k):
-            cluster = [p[attribute] for p in population 
-                      if p[cluster_label] == c]
+            cluster = [p["coordinate"] for p in population 
+                      if p["cluster"] == c]
             
             if len(cluster) == 0:
                 continue

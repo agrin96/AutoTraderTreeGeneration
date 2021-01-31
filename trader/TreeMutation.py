@@ -14,6 +14,40 @@ from TreeActions import (
     replace_node)
 
 
+def mutate(pop:Dict,
+           variables:Dict[str],
+           terminals:List[str],
+           unique:bool=True,
+           probability:float=0.5,
+           mutation_types:Dict={
+               "replace":0.50,
+               "insert_node":0.25,
+               "insert_terminal":0.25
+           })->Dict:
+    """Execute a point mutation on the pop with the given probability of a 
+    mutation occuring at all. Three types of mutations can take place. 
+    The first replaces a node or adds a stump (addition). The second replaces 
+    a node with a terminal (deletion). And the third modifies a threshold or
+    changes a terminal type (modification). Note the thid doesn't change the
+    tree structure.
+    Parameters:
+        unique (bool): Whether to make sure that all variables in the tree are
+            unique (sampled without replacement) when mutating.
+        probability (float): Liklihood of mutation occuring at all.
+        mutation_types (Dict): A dictionary indicating the likelihood of each
+            variant of mutation described above occuring. Setting to 0 means
+            that mutation type will never occur.
+    """
+    pop["tree"] = point_mutate(
+        pop["tree"],
+        variables,
+        terminals,
+        unique,
+        probability,
+        mutation_types)
+    return pop
+
+
 def point_mutate(
         node:Node,
         variables:Dict[str],

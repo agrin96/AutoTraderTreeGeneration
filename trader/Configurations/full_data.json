@@ -20,6 +20,7 @@
     "threshold_step_percent":0.01,
     "train_percent_split":0.7,
     "split_type":"continuous",
+    "search_distance_modifier":0.25,
     "data_file_path":"../indicator_data.csv",
     "variables":[
         "best_ask",

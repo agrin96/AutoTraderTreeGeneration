@@ -9,6 +9,7 @@ from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
 from TreeActions import tree_depth,get_node,replace_node
 
+
 def create_initialization_variables(data:pd.DataFrame)->Dict[str]:
     """Creates a mapping of column names of the data to their mean values which
     will be used as the initial threshold."""
@@ -126,6 +127,15 @@ def create_tree(
 
 
 def create_stump(variable:str,initial_threshold:str,terminals:List[str])->Node:
+    """Create a node with two terminal children. This is the simplest valid
+    tree structure.
+    Parameters:
+        variable (str): The variable to assign to the root node of this stump.
+        initial_threshold (str): The initial threshold value of the decision
+            made by the variable in the root node.
+        terminals (List[str]): The terminals we are allowed to choose from in
+            this stump creation.
+    Returns the root node of the stump."""
     stump = Node(variable,initial_threshold=initial_threshold)
     stump.add_child(Terminal(np.random.choice(terminals)))
     stump.add_child(Terminal(np.random.choice(terminals)))
@@ -154,11 +164,34 @@ def create_fixed_tree(definition:Dict,_depth:int=0)->Node:
         return node
 
 
-def create_buy_tree(variables:Dict,depth:int=2)->Node:
-    return create_tree(terminals=["BUY","HOLD"],variables=variables,depth=depth)
+def create_buy_tree(variables:Dict,popid:int,depth:int=2)->Dict:
+    """Create a buy tree using the specified options.
+    Parameters:
+        variables (Dict): Valid variables mapped to initial thresholds to
+            choose from when creating a tree.
+        popid (int): The unique identifier to assign to this tree on creation.
+        depth (int): The initial depth of the tree being created.
+    Returns a dictionary containng the tree and some other data about the tree.
+    """
+    return {
+        "popid": popid,
+        "tree": create_tree(terminals=["BUY","HOLD"],
+                            variables=variables,
+                            depth=depth),
+        "fitness": None,
+        "cluster": None,
+        "coordinate": None}
 
 
-def create_sell_tree(variables:Dict,depth:int=3)->Node:
+def create_sell_tree(variables:Dict,popid:int,depth:int=3)->Node:
+    """Create a sell tree using the specified options.
+    Parameters:
+        variables (Dict): Valid variables mapped to initial thresholds to
+            choose from when creating a tree.
+        popid (int): The unique identifier to assign to this tree on creation.
+        depth (int): The initial depth of the tree being created.
+    Returns a dictionary containng the tree and some other data about the tree.
+    """
     definition = {
         "parent": {
             "type": "NODE",
@@ -180,8 +213,12 @@ def create_sell_tree(variables:Dict,depth:int=3)->Node:
         ]
     }
     fixed = create_fixed_tree(definition)
-    return create_tree(
-        terminals=["SELL","HOLD"],
-        variables=variables,
-        fixed_part=fixed,
-        depth=depth)
+    return {
+        "popid": popid,
+        "tree": create_tree(terminals=["SELL","HOLD"],
+                            variables=variables,
+                            fixed_part=fixed,
+                            depth=depth),
+        "fitness": None,
+        "cluster": None,
+        "coordinate": None}

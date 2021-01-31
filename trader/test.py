@@ -5,10 +5,19 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    size = 10000
+    size = 1000
     # buy_coordinates = np.random.randint(0,100,(size,2))
     # sell_coordinates = np.random.randint(0,100,(size,2))
     buy_coordinates = np.random.random((size,2))
+    mask = np.repeat(True,len(buy_coordinates)//3)
+    mask = np.append(mask,np.repeat(False,len(buy_coordinates)-len(buy_coordinates)//3))
+    buy_coordinates[mask] = np.add(buy_coordinates[mask],5)
+
+    mask = np.repeat(False,len(buy_coordinates)//3)
+    mask = np.append(mask,np.repeat(True,len(buy_coordinates)//3))
+    mask = np.append(mask,np.repeat(False,len(buy_coordinates)-len(buy_coordinates)//3*2))
+    buy_coordinates[mask] = np.add(buy_coordinates[mask],3)
+    
     sell_coordinates = np.random.random((size,2))
     # population = [{"id":str(i),"bpoint":list(b),"spoint":list(s)} for i,b,s in zip(range(size),buy_coordinates,sell_coordinates)]
     population = [{"id":str(i),"bpoint":b,"spoint":s} for i,b,s in zip(range(size),buy_coordinates,sell_coordinates)]
@@ -28,8 +37,8 @@ def main():
     buys = [[*p["bpoint"],allcolors[p["buy_cluster"]]] for p in population]
     sells = [[*p["spoint"],allcolors[p["sell_cluster"]]] for p in population]
 
-    # plt.scatter([b[0] for b in buys],[b[1] for b in buys],c=[b[2] for b in buys])
-    plt.scatter([s[0] for s in sells],[s[1] for s in sells],c=[s[2] for s in sells])
+    plt.scatter([b[0] for b in buys],[b[1] for b in buys],c=[b[2] for b in buys])
+    # plt.scatter([s[0] for s in sells],[s[1] for s in sells],c=[s[2] for s in sells])
     plt.show()
     
 
@@ -57,8 +66,6 @@ def kmeans_clustering(population:List,buy_k:int,sell_k:int)->List:
                 population[i]["buy_cluster"] = min_distance[0]
     
         new_buy_centroids = []
-        # for p in population:
-        #     print(p)
         for c in range(buy_k):
             buy_cluster = [p["bpoint"] for p in population if p["buy_cluster"] == c]
             if len(buy_cluster) == 0:
@@ -362,5 +369,55 @@ cnames = {
 'yellow':               '#FFFF00',
 'yellowgreen':          '#9ACD32'}
 
+def speedtest():
+    # this is bs
+    l = np.random.randint(0,100,(100,1))
+
+    from time import time
+
+    start = time()
+    memo = {}
+    for i in range(l.shape[0]):
+        for j in range(l.shape[0]):
+            if i == j:
+                continue
+            if F"{i}-{j}" in memo:
+                continue
+            elif F"{j}-{i}" in memo:
+                continue
+            else:
+                memo[F"{i}-{j}"] = kdistance([l[i]],[l[j]])
+    delta = time() - start
+    print("Memo loops Elapsed: ", delta) 
+
+    start = time()
+    matrix = np.cross(l,l)
+    print(matrix)
+    delta = time() - start
+    print("Cross product: ", delta) 
+
+
+def test_selected():
+    l1 = [6,2,4,5,1]
+    l2 = [0,2,4,3,6]
+
+    for elA in l1:
+        if len([t for t in l2 if t == elA]):
+            continue
+        else:
+            for idxb,elB in enumerate(l2):
+                if len([t for t in l1 if t == elB]):
+                    continue
+                else:
+                    l2[idxb] = elA
+                    break
+                
+
+    print(l1)
+    print(l2)
+
+
 if __name__ == "__main__":
-    main()
+    test_selected()
+    # speedtest()
+    # main()

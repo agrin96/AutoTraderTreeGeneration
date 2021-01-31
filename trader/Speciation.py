@@ -18,28 +18,25 @@ from Clustering.kmeans import (
     find_kmeans_k)
 
 
-def speciate_by_kmeans(population:List[Dict],process_pool:Pool)->List:
+def speciate_by_kmeans(population:List[Dict],
+                       search_distance_modifier:float,
+                       process_pool:Pool)->List:
+    """For speciation we use k means clustering to assign cluster ids to each
+    member of the population. Returns the population with assigned clusters."""
     if not process_pool:
         raise RuntimeError("Process pool was not initialized at speciation.")
     
     population = process_pool.map(populate_points_for_pop,population)
+    k_value = find_kmeans_k(population,search_distance_modifier)
 
-    args = [[population,"buy_point"],[population,"sell_point"]]
-    buy_k,sell_k = process_pool.starmap(find_kmeans_k,args)
-
-    population = kmeans_clustering(population,"buy_point","buy_cluster",buy_k)
-    population = kmeans_clustering(population,"sell_point","sell_cluster",sell_k)
-
-    return population
+    return kmeans_clustering(population,k_value)
 
     
 def populate_points_for_pop(pop:Dict)->Dict:
     """Generate coordinate points using internal metrics for both the buy
     and the sell trees. The updated pop is returned to allow multiprocessing,
     otherwise the pop is updated in place and return can be ignored."""
-    pop["buy_point"] = generate_coordinate_from_tree(pop["buy"])
-    pop["sell_point"] = generate_coordinate_from_tree(pop["sell"])
-    
+    pop["coordinate"] = generate_coordinate_from_tree(pop["tree"])
     return pop
 
 

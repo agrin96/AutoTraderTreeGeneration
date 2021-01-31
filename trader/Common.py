@@ -40,7 +40,8 @@ def check_configuration(config:Dict):
         "train_percent_split", 
         "split_type",
         "data_file_path",
-        "variables"]
+        "variables",
+        "search_distance_modifier"]
     for req in required:
         if req not in config:
             raise RuntimeError(
