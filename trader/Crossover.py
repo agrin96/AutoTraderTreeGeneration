@@ -72,6 +72,9 @@ def repopulate(population:List[Dict],max_population:int,crossover_p:float)->List
 
     while len(population) < max_population:
         for i in range(clusters):
+            if len(population) >= max_population:
+                break
+            
             current_cluster = [p for p in population if p["cluster"] == i]
             if len(current_cluster) == 0:
                 continue

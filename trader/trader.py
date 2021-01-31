@@ -141,7 +141,6 @@ def main(config):
         print("Selection")
         buy_trees = tournament_selection(buy_trees,3,0.5)
         sell_trees = tournament_selection(sell_trees,3,0.5)
-        buy_trees,sell_trees = match_hanging_trees(buy_trees,sell_trees)
         for b in buy_trees:
             print(b)
         print("")
@@ -151,6 +150,12 @@ def main(config):
         print("Reproduction")
         buy_trees = repopulate(buy_trees,max_population,crossover)
         sell_trees = repopulate(sell_trees,max_population,crossover)
+        buy_trees,sell_trees = match_hanging_trees(buy_trees,sell_trees)
+        for b in buy_trees:
+            print(b)
+        print("")
+        for b in sell_trees:
+            print(b)
 
         print("Mutation")
         args = [
