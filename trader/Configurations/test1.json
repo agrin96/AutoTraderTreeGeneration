@@ -1,8 +1,8 @@
 {
     "process_pool_size":8,
-    "generations": 1000,
-    "initial_population":1000,
-    "max_population":1000,
+    "generations": 100,
+    "initial_population":300,
+    "max_population":300,
     "mutation_rate":0.5,
     "unique_tree_variables":false,
     "mutation_types": {

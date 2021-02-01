@@ -40,7 +40,12 @@ from Selection import (
     match_hanging_trees)
 
 from TreeIO import serialize_tree,deserialize_tree
-from TreeEvaluation import make_pop_decisions,score_decisions
+from TreeEvaluation import (
+    make_pop_decisions,
+    score_decisions,
+    calculate_fitness,
+    number_of_valid_trades)
+
 from TreeMutation import mutate
 from Crossover import single_crossover_reproduction,repopulate
 
@@ -90,6 +95,8 @@ def main(config):
     search_modifier = config["search_distance_modifier"]
     crossover = config["crossover_rate"]
     max_population = config["max_population"]
+    max_buy_depth = config["max_buy_node_depth"]
+    max_sell_depth = config["max_sell_node_depth"]
 
 
     train_df,test_df = continuos_train_test_split(df,train_split)
@@ -122,6 +129,7 @@ def main(config):
 
         args = zip(buy_trees,sell_trees,repeat(train_df,len(buy_trees)))
         decisions = reusable_pool.starmap(make_pop_decisions,args)
+        valid_trades = reusable_pool.map(number_of_valid_trades,decisions)
         evaluation_time.append(time()-start)
         
         print("Scoring")
@@ -133,10 +141,20 @@ def main(config):
                  train_df["best_ask"].values] for dset in decisions]
         balances = reusable_pool.starmap(score_decisions,args)
         
-        for balance,buy,sell in zip(balances,buy_trees,sell_trees):
-            buy["fitness"] = balance
-            sell["fitness"] = balance
+        for balance,buy,sell,trades in zip(balances,buy_trees,sell_trees,valid_trades):
+            buy["balance"] = balance
+            buy["trades"] = trades
+            sell["balance"] = balance
+            sell["trades"] = trades
+
+        args = [[pop,max_buy_depth,starting_funds] for pop in buy_trees]
+        buy_trees = reusable_pool.starmap(calculate_fitness,args)
+
+        args = [[pop,max_sell_depth,starting_funds] for pop in sell_trees]
+        sell_trees = reusable_pool.starmap(calculate_fitness,args)
         scoring_time.append(time()-start)
+        for b in buy_trees:
+            print(b)
 
         print("Speciation")
         start = time()
@@ -156,6 +174,17 @@ def main(config):
         best_sell = max(sell_trees,key=lambda k: k["fitness"])
         print(best_buy)
         print(best_sell)
+        print("-----------------------------------")
+        print("\tAverage Balance and Fitness of Buys")
+        mean_fitness = np.mean(list(map(lambda k: k["fitness"],buy_trees)))
+        mean_balance = np.mean(list(map(lambda k: k["balance"],buy_trees)))
+        print(F"\tMean Fitness: {mean_fitness}")
+        print(F"\tMean Balance: {mean_balance}")
+        print("\tAverage Balance and Fitness of Sells")
+        mean_fitness = np.mean(list(map(lambda k: k["fitness"],sell_trees)))
+        mean_balance = np.mean(list(map(lambda k: k["balance"],sell_trees)))
+        print(F"\tMean Fitness: {mean_fitness}")
+        print(F"\tMean Balance: {mean_balance}")
 
         print("Reproduction")
         start = time()
@@ -165,6 +194,8 @@ def main(config):
         reproduction_time.append(time()-start)
 
         print("Mutation")
+        buy_trees = sorted(buy_trees,key=lambda k: k["fitness"])
+        sell_trees = sorted(sell_trees,key=lambda k: k["fitness"])
         start = time()
         args = [
             [pop,
@@ -172,16 +203,19 @@ def main(config):
             ["BUY","HOLD"],
             unique_tree_variables,
             mutation_rate,
-            mutation_types.copy()] for pop in buy_trees]
-        buy_trees = reusable_pool.starmap(mutate,args)
+            mutation_types.copy()] for pop in buy_trees[10:]]
+        mutated_buys = reusable_pool.starmap(mutate,args)
+        buy_trees = buy_trees[:10] + mutated_buys
+
         args = [
             [pop,
             variables.copy(),
             ["SELL","HOLD"],
             unique_tree_variables,
             mutation_rate,
-            mutation_types.copy()] for pop in sell_trees]
-        sell_trees = reusable_pool.starmap(mutate,args)
+            mutation_types.copy()] for pop in sell_trees[10:]]
+        mutated_sells = reusable_pool.starmap(mutate,args)
+        sell_trees = sell_trees[:10] + mutated_sells
 
         # Reset clusters
         print("Cluster reset")
@@ -221,7 +255,7 @@ def main(config):
     pprint_tree(best_buy["tree"])
     print("")
     print("\tBest Sell tree")
-    pprint_tree(best_sell)
+    pprint_tree(best_sell["tree"])
     print(best_sell["tree"])
 
     print("-----------------------------------")

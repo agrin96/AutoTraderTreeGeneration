@@ -84,7 +84,8 @@ def repopulate(population:List[Dict],max_population:int,crossover_p:float)->List
                 population.append({
                     "popid":lastid,
                     "tree":clone_node(current_cluster[0]["tree"]),
-                    "fitness": None,
+                    "fitness": -np.inf,
+                    "balance": None,
                     "cluster": None,
                     "coordinate": None})
             else:
@@ -98,7 +99,8 @@ def repopulate(population:List[Dict],max_population:int,crossover_p:float)->List
                 population.append({
                     "popid":lastid,
                     "tree":child,
-                    "fitness": None,
+                    "fitness": -np.inf,
+                    "balance": None,
                     "cluster": None,
                     "coordinate": None})
 

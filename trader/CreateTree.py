@@ -179,6 +179,7 @@ def create_buy_tree(variables:Dict,popid:int,depth:int=2)->Dict:
                             variables=variables,
                             depth=depth),
         "fitness": None,
+        "balance": None,
         "cluster": None,
         "coordinate": None}
 
@@ -220,5 +221,6 @@ def create_sell_tree(variables:Dict,popid:int,depth:int=3)->Node:
                             fixed_part=fixed,
                             depth=depth),
         "fitness": None,
+        "balance": None,
         "cluster": None,
         "coordinate": None}
