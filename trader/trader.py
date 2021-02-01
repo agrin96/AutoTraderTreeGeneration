@@ -7,12 +7,15 @@ import uuid
 from DataPrepare import (
     prepare_raw_data,
     continuos_train_test_split)
+
 from Common import (
     random_choice,
     parse_configuration,
     check_configuration)
+
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
+
 from CreateTree import (
     create_initialization_variables,
     create_tree,
@@ -45,6 +48,7 @@ import argparse
 import os
 from multiprocessing import Pool
 from itertools import repeat
+from time import time
 reusable_pool = None
 
 
@@ -99,24 +103,29 @@ def main(config):
             for idx in range(initial_population)]
     sell_trees = reusable_pool.starmap(create_sell_tree,args)
 
-    
+    evaluation_time = []
+    scoring_time = []
+    speciation_time = []
+    selection_time = []
+    reproduction_time = []
+    mutation_time = []
+
     for i in range(generations):
-        print(F"Generation {i+1}")
+        print("-----------------------------------")
+        print(F"\tGeneration {i+1}")
 
         # evaluate
         print("Evaluating")
+        start = time()
         buy_trees = sorted(buy_trees,key=lambda k: k["popid"])
         sell_trees = sorted(sell_trees,key=lambda k: k["popid"])
-        for b in buy_trees:
-            print(b)
-        print("")
-        for b in sell_trees:
-            print(b)
 
         args = zip(buy_trees,sell_trees,repeat(train_df,len(buy_trees)))
         decisions = reusable_pool.starmap(make_pop_decisions,args)
+        evaluation_time.append(time()-start)
         
         print("Scoring")
+        start = time()
         args = [[starting_funds,
                  trading_fee,
                  dset,
@@ -127,37 +136,36 @@ def main(config):
         for balance,buy,sell in zip(balances,buy_trees,sell_trees):
             buy["fitness"] = balance
             sell["fitness"] = balance
+        scoring_time.append(time()-start)
 
         print("Speciation")
+        start = time()
         buy_trees = speciate_by_kmeans(buy_trees,search_modifier,reusable_pool)
         sell_trees = speciate_by_kmeans(sell_trees,search_modifier,reusable_pool)
-        for b in buy_trees:
-            print(b)
-        print("")
-        for b in sell_trees:
-            print(b)
-
+        speciation_time.append(time()-start)
 
         print("Selection")
-        buy_trees = tournament_selection(buy_trees,3,0.5)
-        sell_trees = tournament_selection(sell_trees,3,0.5)
-        for b in buy_trees:
-            print(b)
-        print("")
-        for b in sell_trees:
-            print(b)
+        start = time()
+        buy_trees = tournament_selection(buy_trees,10,0.5)
+        sell_trees = tournament_selection(sell_trees,10,0.5)
+        selection_time.append(time()-start)
+
+        print("-----------------------------------")
+        print("\tCurrent Best")
+        best_buy = max(buy_trees,key=lambda k: k["fitness"])
+        best_sell = max(sell_trees,key=lambda k: k["fitness"])
+        print(best_buy)
+        print(best_sell)
 
         print("Reproduction")
+        start = time()
         buy_trees = repopulate(buy_trees,max_population,crossover)
         sell_trees = repopulate(sell_trees,max_population,crossover)
         buy_trees,sell_trees = match_hanging_trees(buy_trees,sell_trees)
-        for b in buy_trees:
-            print(b)
-        print("")
-        for b in sell_trees:
-            print(b)
+        reproduction_time.append(time()-start)
 
         print("Mutation")
+        start = time()
         args = [
             [pop,
             variables.copy(),
@@ -180,6 +188,51 @@ def main(config):
         for i in range(len(buy_trees)):
             buy_trees[i]["cluster"] = None
             sell_trees[i]["cluster"] = None
+        mutation_time.append(time()-start)
+
+
+    print("Scoring TEST")
+    # evaluate
+    buy_trees = sorted(buy_trees,key=lambda k: k["popid"])
+    sell_trees = sorted(sell_trees,key=lambda k: k["popid"])
+
+    args = zip(buy_trees,sell_trees,repeat(test_df,len(buy_trees)))
+    decisions = reusable_pool.starmap(make_pop_decisions,args)
+    
+    print("Scoring")
+    args = [[starting_funds,
+                trading_fee,
+                dset,
+                test_df["best_bid"].values,
+                test_df["best_ask"].values] for dset in decisions]
+    balances = reusable_pool.starmap(score_decisions,args)
+    
+    for balance,buy,sell in zip(balances,buy_trees,sell_trees):
+        buy["fitness"] = balance
+        sell["fitness"] = balance
+
+    # Get the most fit members of each
+    best_buy = max(buy_trees,key=lambda k: k["fitness"])
+    best_sell = max(sell_trees,key=lambda k: k["fitness"])
+
+    print("-----------------------------------")
+    print("\tBest Buy tree")
+    print(best_buy)
+    pprint_tree(best_buy["tree"])
+    print("")
+    print("\tBest Sell tree")
+    pprint_tree(best_sell)
+    print(best_sell["tree"])
+
+    print("-----------------------------------")
+    print("\tRuntime Statistics")
+    print(F"Mean Evaluation: {np.mean(evaluation_time)} seconds")
+    print(F"Mean Scoring: {np.mean(scoring_time)} seconds")
+    print(F"Mean Speciation: {np.mean(speciation_time)} seconds")
+    print(F"Mean Selection: {np.mean(selection_time)} seconds")
+    print(F"Mean Reproduction: {np.mean(reproduction_time)} seconds")
+    print(F"Mean Mutation: {np.mean(mutation_time)} seconds")
+    print("-----------------------------------")
 
     
 if __name__ == "__main__":

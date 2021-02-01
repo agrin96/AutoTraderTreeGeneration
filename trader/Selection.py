@@ -25,15 +25,14 @@ def tournament_selection(population:List,
             cluster = [pop for pop in population if pop["cluster"] == cid]
             if len(cluster) == 0:
                 continue
-            try:
-                contestants = np.random.choice(cluster,tournament_size)
-                winner = max(contestants,key=lambda c: c["fitness"])
-                population.remove(winner)
-                next_generation.append(winner)
-            except Exception as e:
-                print("cluster", cluster)
-                print("contestants",contestants)
-                raise
+
+            contestants = np.random.choice(cluster,tournament_size)
+            winner = max(contestants,key=lambda c: c["fitness"])
+            population.remove(winner)
+            next_generation.append(winner)
+
+            if len(next_generation) >= survivors:
+                return next_generation
 
     return next_generation
 
