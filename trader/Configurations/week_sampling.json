@@ -1,11 +1,13 @@
 {
-    "process_pool_size":3,
-    "generations": 1,
-    "train_percent_split":0.7,
+    "process_pool_size":8,
+    "generations": 400,
+    "train_percent_split":0.75,
+    "training_sampling_split":0.10,
+    "training_sampling_interval":10,
     "split_type":"continuous",
     "population":{
-        "initial_population":100,
-        "max_population":100,
+        "initial_population":300,
+        "max_population":300,
         "initial_buy_node_depth":2,
         "max_buy_node_depth":15,
         "initial_sell_node_depth":3,
@@ -15,12 +17,14 @@
     "mutation":{
         "mutation_rate":0.75,
         "threshold_step_percent":0.75,
+        "threshold_step_interval":10,
         "mutation_types": {
             "replace":0.50,
             "insert_node":0.50,
             "insert_terminal":0.25,
             "step_threshold":0.90
-        }
+        },
+        "alphas":10
     },
     "evaluation":{
         "initial_funds":100,
@@ -34,7 +38,7 @@
     "crossover":{
         "crossover_rate":0.75
     },
-    "data_file_path":"../test_indicator_data.csv",
+    "data_file_path":"../first_week_indicator_data.csv",
     "variables":[
         "best_ask",
         "best_bid",

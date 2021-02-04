@@ -2,6 +2,7 @@ import numpy as np
 from typing import Dict,Any,List
 import json
 import os
+import matplotlib.pyplot as plt
 
 
 def random_choice(prob_true:float=0.5)->bool:
@@ -18,31 +19,24 @@ def parse_configuration(path:str)->Dict:
         return json.loads(file.read())
 
 
-def check_configuration(config:Dict):
-    """Check the configuration passed in and apply default values to missing
-    parameters."""
-    required = [
-        "process_pool_size",
-        "generations",
-        "initial_population",
-        "max_population",
-        "mutation_rate",
-        "unique_tree_variables",
-        "mutation_types",
-        "initial_buy_node_depth", 
-        "max_buy_node_depth", 
-        "initial_sell_node_depth", 
-        "max_sell_node_depth", 
-        "crossover_rate",
-        "initial_funds", 
-        "trading_fee_percent", 
-        "threshold_step_percent", 
-        "train_percent_split", 
-        "split_type",
-        "data_file_path",
-        "variables",
-        "search_distance_modifier"]
-    for req in required:
-        if req not in config:
-            raise RuntimeError(
-            F"Required parameter `{req}` missing from config.") 
+def pprint_generation_statistics(buy_trees:List[Dict],sell_trees:List[Dict]):
+    """Prints key statistics of the current generation. Shows the best buy
+    and sell tree as well as the mean fitness and mean balance of the 
+    generation population. This step occurs before mutation and selection."""
+    print("\n\tCurrent Best Buy and Sell Trees")
+    best_buy = max(buy_trees,key=lambda k: k["fitness"])
+    best_sell = max(sell_trees,key=lambda k: k["fitness"])
+    print("\t"+str(best_buy))
+    print("\t"+str(best_sell))
+    
+    print("\n\tAverage Balance and Fitness of Buy Trees")
+    mean_fitness = np.mean(list(map(lambda k: k["fitness"],buy_trees)))
+    mean_balance = np.mean(list(map(lambda k: k["balance"],buy_trees)))
+    print(F"\t\tMean Fitness: {mean_fitness}")
+    print(F"\t\tMean Balance: {mean_balance}")
+
+    print("\n\tAverage Balance and Fitness of Sell Trees")
+    mean_fitness = np.mean(list(map(lambda k: k["fitness"],sell_trees)))
+    mean_balance = np.mean(list(map(lambda k: k["balance"],sell_trees)))
+    print(F"\t\tMean Fitness: {mean_fitness}")
+    print(F"\t\tMean Balance: {mean_balance}\n")

@@ -31,7 +31,7 @@ class LabelData:
             sell_data:np.array,
             starting_funds:float=100.0):
 
-        self._max_population = 4000
+        self._max_population = 1000
         
         self._buy_data = buy_data
         self._sell_data = sell_data
@@ -174,7 +174,8 @@ class LabelData:
 
 
 def test():
-    data = pd.read_csv("ticker.csv")    
+    data = pd.read_csv("ticker.csv")
+    data = data.iloc[:40000]  
     # buy at ask, sell at bid
     lb = LabelData(
         buy_data=data["best_ask"].values,

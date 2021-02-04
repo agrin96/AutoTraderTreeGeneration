@@ -101,11 +101,7 @@ def structural_similarity_clustering(population:List[Dict])->List[Dict]:
             clustered.append(closest[0])
 
             if len(clustered) >= max_population:
-                print("CLUSTERED LEN INTERNAL: ",len(clustered))
-                print("POPULATION LEN INTERNAL: ",len(population))
                 return clustered
-    print("CLUSTERED LEN EXTERNAL: ",len(clustered))
-    print("POPULATION LEN EXTERNAL: ",len(population))
     return clustered
 
 

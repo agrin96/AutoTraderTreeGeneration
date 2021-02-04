@@ -1,5 +1,6 @@
 from __future__ import annotations
 import pandas as pd
+import numpy as np
 from typing import Dict,Tuple
 
 
@@ -32,3 +33,26 @@ def continuos_train_test_split(data:pd.DataFrame,split:float)->Tuple:
     test = data.iloc[split_point:].copy()
 
     return train,test
+
+
+def create_data_subset(data:pd.DataFrame,split:float)->pd.DataFrame:
+    """Randomly choose a point in the dataframe to select a subset of the data.
+    Using the split value we find out what the largest index we can select and
+    still get our desired sampled dataframe size. Example:
+    
+    Total-length = 100, split = 0.1
+    Choose a random integer in the range of (0 to (100-(100*0.1))), say 43.
+    And then we return the df sliced by (43 to 43+(100*0.1))
+
+    Returns the sliced Dataframe.
+    """
+    data_size = len(data.index)
+    maximum_offset = data_size - int(data_size*split) - 1
+
+    split_point = np.random.randint(0,maximum_offset)
+    split_offset = split_point + int(data_size*split)
+    
+    print(F"\tSampling data from [{split_point}:{split_offset}]")
+
+    sampled_data = data.iloc[split_point:split_offset].copy()
+    return sampled_data

@@ -64,7 +64,7 @@ def kmeans_clustering(population:List,
         for i in range(len(population)):
             min_distance = (0,np.inf)
             for idx,point in enumerate(centroids):
-                current_distance = distance_func(population[i]["coordinate"],point)
+                current_distance = kdistance(population[i]["coordinate"],point)
                 
                 if current_distance < min_distance[1]:
                     min_distance = (idx,current_distance)
