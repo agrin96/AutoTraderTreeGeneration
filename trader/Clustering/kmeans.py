@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List,Dict,Any,Tuple
+from typing import List,Dict,Any,Tuple,Callable
 import numpy as np
 
 
@@ -14,7 +14,8 @@ def kdistance(kpointA:List[Any],kpointB:List[Any])->float:
 
 
 def find_kmeans_k(population:List[Dict],
-                  search_distance_modifier:float=0.25)->int:
+                  search_distance_modifier:float=0.25,
+                  distance_func:Callable=kdistance)->int:
     """Calculate the k value to be used in k means clustering for the specific
     attribute in the population.
     Parameters:
@@ -32,9 +33,8 @@ def find_kmeans_k(population:List[Dict],
             elif F"{j}-{i}" in memo:
                 continue
             else:
-                memo[F"{i}-{j}"] = kdistance(
-                    kpointA=population[i]["coordinate"],
-                    kpointB=population[j]["coordinate"])
+                memo[F"{i}-{j}"] = distance_func(population[i]["coordinate"],
+                                                 population[j]["coordinate"])
     
     distances = list(memo.values())
     search_distance = np.std(distances)*search_distance_modifier
@@ -49,13 +49,12 @@ def find_kmeans_k(population:List[Dict],
     return output
 
 
-def kmeans_clustering(population:List,k:int)->List:
+def kmeans_clustering(population:List,
+                      k:int,
+                      distance_func:Callable=kdistance)->List:
     """Cluster the population using k means and return the population to allow
     for multiprocessing otherwise it is donein place.
     Parameters:
-        attribtue (str): The attribute we are clustering on in the population.
-        cluster_label (str): The label to which to assign the clustering in the
-            population members.
         k (str): The number of clusters in the kmeans."""
     did_change = True
     centroids = np.random.randint(0,len(population),size=k)
@@ -65,7 +64,7 @@ def kmeans_clustering(population:List,k:int)->List:
         for i in range(len(population)):
             min_distance = (0,np.inf)
             for idx,point in enumerate(centroids):
-                current_distance = kdistance(population[i]["coordinate"],point)
+                current_distance = distance_func(population[i]["coordinate"],point)
                 
                 if current_distance < min_distance[1]:
                     min_distance = (idx,current_distance)

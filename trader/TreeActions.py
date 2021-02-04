@@ -47,8 +47,14 @@ def tree_depth(node:Node)->int:
     if isinstance(node,Terminal):
         return 1
     else:
-        first,second = node.children()
-        return max(1 + tree_depth(first),1 + tree_depth(second))
+        try:
+            first,second = node.children()
+            return max(1 + tree_depth(first),1 + tree_depth(second))
+        except Exception as e:
+            # print("Children: ",node.children())
+            # print("Children Length: ",len(node.children()))
+            # pprint_tree(node)
+            raise
 
 
 def count_nodes(node:Node,with_terminals:bool=True)->int:
@@ -99,7 +105,10 @@ def get_node(node:Node,of_depth:int=1,_depth:int=1,_nodes:List[Node]=[])->Node:
         return np.random.choice(_nodes)
 
 
-def get_random_node(node:Node,_depth:int=1,_nodes:List[Node]=[])->Node:
+def get_random_node(node:Node,
+                    include_root:bool=False,
+                    _depth:int=1,
+                    _nodes:List[Node]=[])->Node:
     """Chose a random node from all nodes in this tree excluding the root. If 
     the random node is a fixed node, then it will traverse up and return the 
     root of the fixed part so that we only ever change the entire fixed section.
@@ -108,6 +117,9 @@ def get_random_node(node:Node,_depth:int=1,_nodes:List[Node]=[])->Node:
         _nodes = []
     
     if not node.is_root():
+        _nodes.append(node)
+
+    if include_root and node.is_root():
         _nodes.append(node)
 
     if isinstance(node,Node):
@@ -132,23 +144,48 @@ def root_of_fixed(node:Node)->Node:
         return node 
 
 
-def replace_node(original:Node,new_node:Node,include_children:bool=False):
+def replace_node(original:Node,new_node:Node)->Node:
     """Replace the original node with a new node by swapping the children
     of the parent element.
-    Parameters:
-        include_children (bool): Whether to reassign children as well. If true
-            then the new node should not have any children of its own."""
-    if original.is_root():
-        raise RuntimeError("Attempting to replace root. This is not allowed.")
+    Returns the original root of the tree if a node was replaced in the middle
+    or returns the new root if the root was replaced."""
+    if isinstance(original,Terminal) or isinstance(new_node,Terminal):
+        parent = original.get_parent()
+        idx = parent.remove_child(original)
+        parent.add_child(new_node,idx)
+        return root_of_tree(new_node)
+
+    left,right = original.children()
+    new_node.add_child(left)
+    new_node.add_child(right)
+
+    if not original.is_root():
+        parent = original.get_parent()
+        idx = parent.remove_child(original)
+        parent.add_child(new_node,idx)
+
+        # Return the root
+        return root_of_tree(new_node)
+
+    # Return new root
+    return new_node
+
+
+def replace_node_with_fixed(original:Node,new_fixed:Node)->Node:
+    """Inplace replace a node with a fixed part. This drops the node being
+    replaced and inserts the fixed part in its place."""
+    root_before = root_of_tree(original)
+    
     parent = original.get_parent()
     idx = parent.remove_child(original)
-    
-    if include_children and isinstance(original,Node):
-        first,second = original.children()
-        new_node.add_child(first)
-        new_node.add_child(second)
+    parent.add_child(new_fixed,idx)
 
-    parent.add_child(new_node,index=idx)
+    root_after = root_of_tree(new_fixed)
+
+    if root_before.node_id() != root_after.node_id():
+        raise RuntimeError("Root Modified when it shouldnt have been.")
+    
+    return root_after 
 
 
 def list_tree_variables(node:Node,with_threshold:bool=False,_depth:int=1,_variables:List[str]=[])->[str]:
@@ -229,3 +266,11 @@ def set_node_threshold(node:Node,variable:str,new_threshold:float):
         if set_node_threshold(second,variable,new_threshold):
             return True
     return False
+
+
+def root_of_tree(node:Node)->Node:
+    """Traverse the tree to get the root and return it."""
+    if node.is_root():
+        return node
+    else:
+        return root_of_tree(node.get_parent())

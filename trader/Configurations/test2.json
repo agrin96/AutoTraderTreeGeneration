@@ -4,8 +4,8 @@
     "train_percent_split":0.7,
     "split_type":"continuous",
     "population":{
-        "initial_population":10,
-        "max_population":10,
+        "initial_population":100,
+        "max_population":100,
         "initial_buy_node_depth":2,
         "max_buy_node_depth":15,
         "initial_sell_node_depth":3,
@@ -13,12 +13,13 @@
         "unique_tree_variables":false
     },
     "mutation":{
-        "mutation_rate":0.5,
-        "threshold_step_percent":0.01,
+        "mutation_rate":0.75,
+        "threshold_step_percent":0.75,
         "mutation_types": {
             "replace":0.50,
-            "insert_node":0.25,
-            "insert_terminal":0.25
+            "insert_node":0.50,
+            "insert_terminal":0.25,
+            "step_threshold":0.90
         }
     },
     "evaluation":{
@@ -26,12 +27,12 @@
         "trading_fee_percent":0.001
     },
     "selection":{
-        "tournament_size":4,
-        "survivors_percent": 0.5,
+        "tournament_size":10,
+        "survivors_percent": 0.25,
         "search_distance_modifier":0.25
     },
     "crossover":{
-        "crossover_rate":0.5
+        "crossover_rate":0.75
     },
     "data_file_path":"../test_indicator_data.csv",
     "variables":[

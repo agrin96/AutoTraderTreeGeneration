@@ -369,53 +369,6 @@ cnames = {
 'yellow':               '#FFFF00',
 'yellowgreen':          '#9ACD32'}
 
-def speedtest():
-    # this is bs
-    l = np.random.randint(0,100,(100,1))
-
-    from time import time
-
-    start = time()
-    memo = {}
-    for i in range(l.shape[0]):
-        for j in range(l.shape[0]):
-            if i == j:
-                continue
-            if F"{i}-{j}" in memo:
-                continue
-            elif F"{j}-{i}" in memo:
-                continue
-            else:
-                memo[F"{i}-{j}"] = kdistance([l[i]],[l[j]])
-    delta = time() - start
-    print("Memo loops Elapsed: ", delta) 
-
-    start = time()
-    matrix = np.cross(l,l)
-    print(matrix)
-    delta = time() - start
-    print("Cross product: ", delta) 
-
-
-def test_selected():
-    l1 = [6,2,4,5,1]
-    l2 = [0,2,4,3,6]
-
-    for elA in l1:
-        if len([t for t in l2 if t == elA]):
-            continue
-        else:
-            for idxb,elB in enumerate(l2):
-                if len([t for t in l1 if t == elB]):
-                    continue
-                else:
-                    l2[idxb] = elA
-                    break
-                
-
-    print(l1)
-    print(l2)
-
 
 if __name__ == "__main__":
     test_selected()

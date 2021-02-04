@@ -7,7 +7,7 @@ import uuid
 from Common import random_choice
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
-from TreeActions import tree_depth,get_node,replace_node
+from TreeActions import tree_depth,get_node,replace_node_with_fixed
 
 
 def create_initialization_variables(data:pd.DataFrame)->Dict[str]:
@@ -121,7 +121,7 @@ def create_tree(
     if fixed_part:
         needed_depth = depth - tree_depth(fixed_part) + 1
         node = get_node(root,of_depth=needed_depth)
-        replace_node(node,fixed_part)
+        root = replace_node_with_fixed(node,fixed_part)
 
     return root
 

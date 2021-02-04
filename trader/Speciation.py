@@ -18,9 +18,9 @@ from Clustering.kmeans import (
     find_kmeans_k)
 
 
-def speciate_by_kmeans(population:List[Dict],
-                       search_distance_modifier:float,
-                       process_pool:Pool)->List:
+def speciate_by_coordinate(population:List[Dict],
+                           search_distance_modifier:float,
+                           process_pool:Pool)->List:
     """For speciation we use k means clustering to assign cluster ids to each
     member of the population. Returns the population with assigned clusters."""
     if not process_pool:
@@ -30,6 +30,12 @@ def speciate_by_kmeans(population:List[Dict],
     k_value = find_kmeans_k(population,search_distance_modifier)
 
     return kmeans_clustering(population,k_value)
+
+
+def speciate_by_structure(population:List[Dict])->List:
+    """For speciation we use k means clustering to assign cluster ids to each
+    member of the population. Returns the population with assigned clusters."""
+    return structural_similarity_clustering(population)
 
     
 def populate_points_for_pop(pop:Dict)->Dict:
@@ -50,14 +56,10 @@ def structural_similarity(treeA:Node,treeB:Node)->float:
             if isinstance(treeB,Terminal):
                 return 1
             else:
-                first,second = treeB.children()
-                return structural_similarity(None,first)\
-                    + structural_similarity(None,second)
+                return 0
         else:
             if isinstance(treeB,Terminal):
-                first,second = treeA.children()
-                return structural_similarity(first,None)\
-                    + structural_similarity(second,None)
+                return 0
             else:
                 first,second = treeA.children()
                 firstb,secondb = treeB.children()
@@ -66,6 +68,45 @@ def structural_similarity(treeA:Node,treeB:Node)->float:
     
     total_nodes = count_nodes(treeA) + count_nodes(treeB)
     return get_similarity(treeA,treeB) / total_nodes
+
+
+def structural_similarity_clustering(population:List[Dict])->List[Dict]:
+    """Cluster based on structural similarity measures. We select N number of
+    pops for our cluster seeds and then do a greedy search on each of the seed
+    pops to find the most similar members until all pops are accounted for.
+    Returns the population with the cluster attribute assigned"""
+    max_population = len(population)
+    total_clusters = max(len(population)//10,4)
+    clustered = []
+
+    # choose some pops randomly as cluster centers and remove them from the pool
+    centers = np.random.choice(population,total_clusters,replace=False)
+    for cluster,center in enumerate(centers):
+        population = [p for p in population if p["popid"]!=center["popid"]]
+        center["cluster"] = cluster
+        clustered.append(center)
+
+    while len(clustered) < max_population:
+        for cluster,center in enumerate(centers):
+            closest = (None,np.inf)
+            for pop in population:
+                measure = structural_similarity(center["tree"],pop["tree"])
+                if measure < closest[1]:
+                    closest = (pop,measure)
+            
+            # Assign cluster to the closest pop and remove it from the running.
+            population = [p for p in population 
+                          if p["popid"]!=closest[0]["popid"]]
+            closest[0]["cluster"] = cluster
+            clustered.append(closest[0])
+
+            if len(clustered) >= max_population:
+                print("CLUSTERED LEN INTERNAL: ",len(clustered))
+                print("POPULATION LEN INTERNAL: ",len(population))
+                return clustered
+    print("CLUSTERED LEN EXTERNAL: ",len(clustered))
+    print("POPULATION LEN EXTERNAL: ",len(population))
+    return clustered
 
 
 def generate_coordinate_from_tree(node:Node)->List:
