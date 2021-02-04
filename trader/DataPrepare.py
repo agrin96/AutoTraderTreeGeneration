@@ -1,7 +1,7 @@
 from __future__ import annotations
 import pandas as pd
 import numpy as np
-from typing import Dict,Tuple
+from typing import Dict,Tuple,List
 
 
 def prepare_raw_data(data_path:str,config_data:Dict)->pd.DataFrame:
@@ -56,3 +56,16 @@ def create_data_subset(data:pd.DataFrame,split:float)->pd.DataFrame:
 
     sampled_data = data.iloc[split_point:split_offset].copy()
     return sampled_data
+
+
+def create_data_samples(data:pd.DataFrame,
+                        num_samples:int,
+                        split:float)->List[pd.DataFrame]:
+    """Create N number of training dataframes that we can rotate through while
+    training to make sure that we generalize our bot as much as possible."""
+    if num_samples == -1:
+        raise RuntimeError(
+        "The configuration specified means samples will be created"\
+        " continuously. Therefore no fixed samples can be created.")
+    
+    return [create_data_subset(data,split) for _ in range(num_samples)]

@@ -94,7 +94,8 @@ def score_decisions(
 
 def calculate_fitness(pop:Dict,
                       max_depth:int,
-                      initial_balance:float)->Dict:
+                      initial_balance:float,
+                      long_balance:float)->Dict:
     """Computes a fitness value for the tree based on the profit, depth and
     valid trades executed. This allows us to pressure the trees not to get 
     larger than the maximum depth and make sure we penalize trees doing nothing.
@@ -112,6 +113,8 @@ def calculate_fitness(pop:Dict,
     pop_depth = tree_depth(pop["tree"])
     depth_modifier = np.power(min(max_depth/pop_depth,1),3)
 
+    long_position_modifier = (pop["balance"]/long_balance)
+
     if pop["trades"] > 1:
         if profit > 0:
             profit = profit*2*np.log(pop["trades"])
@@ -121,9 +124,9 @@ def calculate_fitness(pop:Dict,
 
     if profit < 0:
         # Makes a negative result more negative.
-        pop["fitness"] = profit*(1/depth_modifier)
+        pop["fitness"] = profit*(1/depth_modifier)*(1/long_position_modifier)
     else:
-        pop["fitness"] = profit*depth_modifier
+        pop["fitness"] = profit*depth_modifier*long_position_modifier
     
     return pop
 
@@ -169,3 +172,21 @@ def step_thresholds(tree:Node,generation:int,step_percent:float):
 
         step_thresholds(first,generation,step_percent)
         step_thresholds(second,generation,step_percent)
+
+
+def natural_price_increase(config:Dict,data:pd.DataFrame)->float:
+    """Calculates the natural growth of a long position in this dataframe.
+    This serves as a baseline for seeing whether we are outperforming the mean
+    growth.
+    Returns the balance of a long position."""
+    initial_funds = config["evaluation"]["initial_funds"]
+    fee = config["evaluation"]["trading_fee_percent"]
+
+    starting_price = data["best_ask"].values[0]
+    ending_price = data["best_bid"].values[-1]
+
+    coins = (initial_funds/starting_price)*(1-fee)
+    final_balance = (coins*ending_price)*(1-fee)
+
+    return final_balance
+    

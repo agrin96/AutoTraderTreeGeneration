@@ -1,13 +1,13 @@
 {
     "save_best":true,
     "process_pool_size":8,
-    "generations": 400,
+    "generations": 3,
     "training":{
-        "traintest_split":0.75,
+        "traintest_split":0.5,
         "train_sampling_split":0.10,
         "rotation_interval":10,
         "rotate_training_data":true,
-        "training_sets":-1
+        "training_sets":2
     },
     "population":{
         "initial_population":300,
