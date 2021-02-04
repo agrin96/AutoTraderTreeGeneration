@@ -11,7 +11,6 @@ import os
 from Common import (
     random_choice,
     parse_configuration,
-    pprint_generation_statistics,
     store_serialized_pop)
 
 from DataPrepare import (
@@ -33,6 +32,7 @@ from TreeIO import (
     deserialize_tree)
 
 from TreeEvaluation import natural_price_increase
+from Reporting import pprint_generation_statistics
 
 from Population import (
     population_initialization,
@@ -226,7 +226,7 @@ def train_trader(config):
     print(F"\tMean Mutation: {np.mean(mutation_time)} seconds")
     print("|-------------------------------------------------------------|\n")
 
-    print(F"\n\tTotal Runtime: {(time() - runtime_start)/3600} hours\t")
+    print(F"\n\tTotal Runtime: {(time() - runtime_start)/3600} hours\n")
 
     
 if __name__ == "__main__":

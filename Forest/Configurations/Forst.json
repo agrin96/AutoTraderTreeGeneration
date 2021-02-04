@@ -1,0 +1,9 @@
+{
+    "process_pool_size":8,
+    "evaluation":{
+        "initial_funds":100,
+        "trading_fee_percent":0.001
+    },
+    "data_file_path":"../first_week_indicator_data.csv",
+    "serialized_models_path": "../SerializedTrees/"
+}
