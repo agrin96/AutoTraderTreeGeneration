@@ -5,7 +5,9 @@ import os
 import matplotlib.pyplot as plt
 from TreeActions import count_nodes,tree_depth
 
-def pprint_generation_statistics(buy_trees:List[Dict],sell_trees:List[Dict]):
+def pprint_generation_statistics(buy_trees:List[Dict],
+                                 sell_trees:List[Dict],
+                                 rolling_balances:List[float]):
     """Prints key statistics of the current generation. Shows the best buy
     and sell tree as well as the mean fitness and mean balance of the 
     generation population. This step occurs before mutation and selection."""
@@ -37,5 +39,11 @@ def pprint_generation_statistics(buy_trees:List[Dict],sell_trees:List[Dict]):
     buy_count = np.mean(list(map(lambda t: count_nodes(t["tree"]),buy_trees)))
     sell_count = np.mean(list(map(lambda t: count_nodes(t["tree"]),sell_trees)))
     print(F"\t\tMean Buy Node Count: {buy_count}")
-    print(F"\t\tMean Sell Node Count: {sell_count}\n")
+    print(F"\t\tMean Sell Node Count: {sell_count}")
+
+    print("\n\tRolling Mean of Best Member Balances")
+    rolling_balances.append(best_buy["balance"])
+    rolling_balances.append(best_sell["balance"])
+    rolling_mean = np.mean(rolling_balances)
+    print(F"\t\tCurrent rolling mean balance: {rolling_mean}\n")
 

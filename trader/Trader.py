@@ -111,6 +111,7 @@ def train_trader(config):
     selection_time = []
     reproduction_time = []
     mutation_time = []
+    balances = []
 
     initial_step_size = config["mutation"]["threshold_step_percent"]
     modulated_step_size = initial_step_size
@@ -149,7 +150,7 @@ def train_trader(config):
         buy_trees,sell_trees = population_selection(config,buy_trees,sell_trees)
         selection_time.append(time()-start)
 
-        pprint_generation_statistics(buy_trees,sell_trees)
+        pprint_generation_statistics(buy_trees,sell_trees,balances)
 
         print("|-Repopulating via Reproduction")
         start = time()

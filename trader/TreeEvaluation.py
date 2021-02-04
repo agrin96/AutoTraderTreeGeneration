@@ -124,7 +124,7 @@ def calculate_fitness(pop:Dict,
 
     if profit < 0:
         # Makes a negative result more negative.
-        pop["fitness"] = profit*(1/depth_modifier)*(1/long_position_modifier)
+        pop["fitness"] = profit*(1/depth_modifier)
     else:
         pop["fitness"] = profit*depth_modifier*long_position_modifier
     
