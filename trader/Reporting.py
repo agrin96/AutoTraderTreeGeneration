@@ -1,7 +1,5 @@
 import numpy as np
-from typing import Dict,Any,List
-import json
-import os
+from typing import Dict,List
 import matplotlib.pyplot as plt
 from TreeActions import count_nodes,tree_depth
 

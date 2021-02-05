@@ -1,10 +1,6 @@
 from __future__ import annotations
 from typing import List,Union,Dict
-import pandas as pd
-import numpy as np
-import uuid
 
-from Common import random_choice
 from .BaseNode import BaseNode
 from .Terminal import Terminal
 
@@ -17,7 +13,7 @@ class Node(BaseNode):
         self._isfixed = is_fixed
 
     @staticmethod
-    def node_from_dict(data:Dict,fixed:bool=False)->Node:
+    def node_from_dict(data:Dict)->Node:
         if data["type"] == "NODE":
             return Node(
                 var_name=data["variable"],
@@ -62,25 +58,12 @@ class Node(BaseNode):
         return removed
 
 
-    def step_threshold(self,base_step:float,generation:int):
-        step = self._threshold * (base_step / generation)
-
-        if random_choice(prob_true=0.5):
-            self._threshold = self._threshold + step
-        else:
-            self._threshold = self._threshold - step
+    def children(self)->List:
+        return self._children
 
 
     def set_threshold(self,threshold:float):
         self._threshold = threshold
-
-
-    def get_threshold(self)->float:
-        return self._threshold
-
-
-    def children(self)->List:
-        return self._children
 
 
     def __repr__(self):

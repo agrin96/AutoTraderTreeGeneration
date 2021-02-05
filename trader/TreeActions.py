@@ -3,7 +3,6 @@ from typing import List,Union
 import json
 import numpy as np
 
-from Common import random_choice
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
 
@@ -47,14 +46,28 @@ def tree_depth(node:Node)->int:
     if isinstance(node,Terminal):
         return 1
     else:
-        try:
-            first,second = node.children()
-            return max(1 + tree_depth(first),1 + tree_depth(second))
-        except Exception as e:
-            # print("Children: ",node.children())
-            # print("Children Length: ",len(node.children()))
-            # pprint_tree(node)
-            raise
+        first,second = node.children()
+        return max(1 + tree_depth(first),1 + tree_depth(second))
+
+
+def is_left_child(node:Node)->bool:
+    """Returns whether this node is a left chilf of its parent or a right child.
+    On root it return false, but this is meaningless."""
+    if node.is_root():
+        return False
+    
+    left,right = node.get_parent().children()
+    if left.node_id() == node.node_id():
+        return True
+    return False
+
+
+def node_depth(node:Node)->int:
+    """Returns the depth of this node in its tree. Root node is 0."""
+    if node.is_root():
+        return 0
+    else:
+        return 1 + node_depth(node.get_parent())
 
 
 def count_nodes(node:Node,with_terminals:bool=True)->int:

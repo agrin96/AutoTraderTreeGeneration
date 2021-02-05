@@ -9,10 +9,6 @@ import argparse
 import os
 from multiprocessing import Pool
 
-from Speciation import (
-    speciate_by_coordinate,
-    speciate_by_structure)
-
 from Selection import (
     tournament_selection,
     match_hanging_trees)
@@ -21,15 +17,12 @@ from TreeEvaluation import (
     make_pop_decisions,
     score_decisions,
     calculate_fitness,
-    number_of_valid_trades,
     natural_price_increase)
 
 from Crossover import (
-    single_crossover_reproduction,
     repopulate)
 
 from CreateTree import (
-    create_initialization_variables,
     create_buy_tree,
     create_sell_tree)
 
@@ -137,7 +130,6 @@ def population_mutation(config:Dict,
     mutated set of buy and sell trees including any non affected trees."""
     mutation_types = config["mutation"]["mutation_types"]
     mutation_rate = config["mutation"]["mutation_rate"]
-    unique_tree_variables = config["population"]["unique_tree_variables"]
     alphas = config["mutation"]["alphas"]
 
     buy_trees = sorted(buy_trees,key=lambda k: k["fitness"])
@@ -158,9 +150,7 @@ def population_mutation(config:Dict,
         [pop,
         variables.copy(),
         ["BUY","HOLD"],
-        unique_tree_variables,
         mutation_rate,
-        step_size,
         mutation_types.copy()] for pop in buy_trees]
 
     mutated_buys = pool.starmap(point_mutate,args)\
@@ -172,9 +162,7 @@ def population_mutation(config:Dict,
         [pop,
         variables.copy(),
         ["SELL","HOLD"],
-        unique_tree_variables,
         mutation_rate,
-        step_size,
         mutation_types.copy()] for pop in sell_trees]
 
     mutated_sells = pool.starmap(point_mutate,args)\
