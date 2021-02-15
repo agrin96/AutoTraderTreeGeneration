@@ -1,13 +1,13 @@
 {
     "save_best":true,
-    "process_pool_size":8,
+    "process_pool_size":10,
     "generations": 300,
     "training":{
-        "traintest_split":0.5,
+        "traintest_split":0.66,
         "train_sampling_split":0.10,
-        "rotation_interval":20,
+        "rotation_interval":2,
         "rotate_training_data":true,
-        "training_sets":3
+        "training_sets":2
     },
     "population":{
         "initial_population":300,
@@ -24,7 +24,7 @@
         "threshold_step_interval":10,
         "mutation_types": {
             "replace":0.50,
-            "insert_node":0.50,
+            "insert_node":1.0,
             "insert_terminal":0.25,
             "step_threshold":0.90
         },

@@ -1,12 +1,11 @@
 from __future__ import annotations
-from typing import List,Union,Dict,Tuple
+from typing import List,Dict,Tuple
 import pandas as pd
 import numpy as np
 
-from Common import random_choice
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
-from TreeActions import tree_depth,get_node,replace_node,set_node_threshold,pprint_tree
+from TreeActions import tree_depth,set_node_threshold
 
 
 def make_pop_decisions(buy_tree:Dict,sell_tree:Dict,data:pd.DataFrame)->List[str]:

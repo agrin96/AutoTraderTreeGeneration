@@ -19,7 +19,6 @@ def prepare_raw_data(data_path:str,config_data:Dict)->pd.DataFrame:
         return df
 
 
-
 def continuos_train_test_split(data:pd.DataFrame,split:float)->Tuple:
     """Generate a continuous train/test split of data. Meaning we do not sample
     the data, but rather simply split it at the integer index corresponding to

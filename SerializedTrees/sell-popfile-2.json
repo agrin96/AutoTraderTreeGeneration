@@ -1,0 +1,125 @@
+{
+  "parent": {
+    "type": "NODE",
+    "variable": "bop_sma",
+    "threshold": -0.09002093305385883,
+    "fixed": false
+  },
+  "children": [
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": "macd_12_26_9_signal",
+        "threshold": -2.039301937352292,
+        "fixed": false
+      },
+      "children": [
+        {
+          "parent": {
+            "type": "NODE",
+            "variable": "bollinger_lower",
+            "threshold": 4506.094331280699,
+            "fixed": false
+          },
+          "children": [
+            {
+              "type": "TERMINAL",
+              "variable": "HOLD",
+              "fixed": false
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "HOLD",
+              "fixed": false
+            }
+          ]
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "HOLD",
+          "fixed": false
+        }
+      ]
+    },
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": "kama_short",
+        "threshold": 13544.095867033906,
+        "fixed": false
+      },
+      "children": [
+        {
+          "parent": {
+            "type": "NODE",
+            "variable": "ulcer",
+            "threshold": 0.27720119951251204,
+            "fixed": false
+          },
+          "children": [
+            {
+              "parent": {
+                "type": "NODE",
+                "variable": "bop_sma",
+                "threshold": -0.06751569979039412,
+                "fixed": false
+              },
+              "children": [
+                {
+                  "type": "TERMINAL",
+                  "variable": "SELL",
+                  "fixed": false
+                },
+                {
+                  "type": "TERMINAL",
+                  "variable": "HOLD",
+                  "fixed": false
+                }
+              ]
+            },
+            {
+              "parent": {
+                "type": "NODE",
+                "variable": "kama_short",
+                "threshold": 4514.698622344636,
+                "fixed": false
+              },
+              "children": [
+                {
+                  "type": "TERMINAL",
+                  "variable": "HOLD",
+                  "fixed": false
+                },
+                {
+                  "type": "TERMINAL",
+                  "variable": "SELL",
+                  "fixed": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "parent": {
+            "type": "NODE",
+            "variable": "ulcer_normal",
+            "threshold": 0.034069431100042825,
+            "fixed": false
+          },
+          "children": [
+            {
+              "type": "TERMINAL",
+              "variable": "HOLD",
+              "fixed": false
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "SELL",
+              "fixed": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

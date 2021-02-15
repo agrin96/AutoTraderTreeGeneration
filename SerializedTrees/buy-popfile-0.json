@@ -1,0 +1,110 @@
+{
+  "parent": {
+    "type": "NODE",
+    "variable": "bollinger_lower",
+    "threshold": 17990.154298978676,
+    "fixed": false
+  },
+  "children": [
+    {
+      "type": "TERMINAL",
+      "variable": "HOLD",
+      "fixed": false
+    },
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": "atr",
+        "threshold": 14.248638227412163,
+        "fixed": false
+      },
+      "children": [
+        {
+          "parent": {
+            "type": "NODE",
+            "variable": "rsi_oversold",
+            "threshold": -19.888940830591494,
+            "fixed": false
+          },
+          "children": [
+            {
+              "type": "TERMINAL",
+              "variable": "HOLD",
+              "fixed": false
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "BUY",
+              "fixed": false
+            }
+          ]
+        },
+        {
+          "parent": {
+            "type": "NODE",
+            "variable": "rsi",
+            "threshold": 48.92342985014412,
+            "fixed": false
+          },
+          "children": [
+            {
+              "parent": {
+                "type": "NODE",
+                "variable": "obv",
+                "threshold": 6557774.378977899,
+                "fixed": false
+              },
+              "children": [
+                {
+                  "parent": {
+                    "type": "NODE",
+                    "variable": "macd_4_9_3",
+                    "threshold": 0.14683999718575352,
+                    "fixed": false
+                  },
+                  "children": [
+                    {
+                      "parent": {
+                        "type": "NODE",
+                        "variable": "macd_4_9_3_signal",
+                        "threshold": 0.6947792007467594,
+                        "fixed": false
+                      },
+                      "children": [
+                        {
+                          "type": "TERMINAL",
+                          "variable": "HOLD",
+                          "fixed": false
+                        },
+                        {
+                          "type": "TERMINAL",
+                          "variable": "HOLD",
+                          "fixed": false
+                        }
+                      ]
+                    },
+                    {
+                      "type": "TERMINAL",
+                      "variable": "HOLD",
+                      "fixed": false
+                    }
+                  ]
+                },
+                {
+                  "type": "TERMINAL",
+                  "variable": "BUY",
+                  "fixed": false
+                }
+              ]
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "BUY",
+              "fixed": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

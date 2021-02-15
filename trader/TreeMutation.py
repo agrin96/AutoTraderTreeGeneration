@@ -1,31 +1,32 @@
 from __future__ import annotations
-from typing import List,Dict,Optional
+from typing import List,Dict
 
 import numpy as np
 
 from Common import random_choice
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
-from CreateTree import create_stump
+
+from CreateTree import (
+    create_stump,
+    threshold_at_depth)
+    
 from TreeActions import (
-    list_tree_variables,
-    list_tree_terminals,
     get_random_node,
-    replace_node)
+    replace_node,
+    is_left_child,
+    node_depth)
 
 
 def point_mutate(
         pop:Dict,
         variables:Dict[str],
         terminals:List[str],
-        unique:bool=True,
         probability:float=0.5,
-        threshold_step:float = 0.5,
         mutation_types:Dict={
             "replace":0.50,
             "insert_node":0.25,
-            "insert_terminal":0.25,
-            "step_threshold": 0.50,
+            "insert_terminal":0.25
         })->Dict:
     """Execute a point mutation on the tree with the given probability of a 
     mutation occuring at all. Three types of mutations can take place. 
@@ -43,17 +44,9 @@ def point_mutate(
     """
     if not random_choice(prob_true=probability):
         return pop
-    tree = pop["tree"]
     
+    tree = pop["tree"]
     unused_variables = variables.copy()
-    if unique:
-        # Essentially the same as set(A)-set(B), but for dictionaries.
-        used_variables = list_tree_variables(tree,with_threshold=True)
-        all(map(unused_variables.pop,[*used_variables]))
-
-        if len(list(used_variables.keys())) <= 1:
-            return pop
-
     chosen = get_random_node(tree,include_root=True)
 
     if chosen.is_fixed():
@@ -71,17 +64,10 @@ def point_mutate(
     if random_choice(prob_true=mutation_types["insert_terminal"]):
         chosen = get_random_node(tree)
         replace_with_terminal(chosen,terminals)
-    
-    if random_choice(prob_true=mutation_types["step_threshold"]):
-        chosen = get_random_node(tree,include_root=True)
-        if isinstance(chosen,Node):
-            step_threshold(chosen,threshold_step)
 
     chosen = get_random_node(tree)
     if isinstance(chosen,Terminal):
         replace_with_terminal(chosen,terminals)
-    else:
-        step_threshold(chosen,threshold_step)
     
     pop["tree"] = tree
     return pop
@@ -101,11 +87,14 @@ def replace_with_node(node:Node,variables:Dict[str],terminals:List[str])->Node:
     with a node stump. This is an expansion operation since it generally leads
     to growing the tree."""
     selection = np.random.choice([*variables])
+    threshold = threshold_at_depth(node_depth(node),
+                                   variables[selection],
+                                   is_left_child(node))
     if isinstance(node,Terminal):
-        replacement = create_stump(selection,variables[selection],terminals)
+        replacement = create_stump(selection,threshold,terminals)
         return replace_node(node,new_node=replacement)
     else:
-        replacement = Node(selection,initial_threshold=variables[selection])
+        replacement = Node(selection,initial_threshold=threshold)
         return replace_node(node,new_node=replacement)
 
 
@@ -113,20 +102,14 @@ def insert_node(node:Node,variables:Dict[str],terminals:List[str]):
     """Inserts a node between the node specified and its parent. Node must
     not be a root."""
     selection = np.random.choice([*variables])
+    threshold = threshold_at_depth(node_depth(node),
+                                   variables[selection],
+                                   is_left_child(node))
     parent = node.get_parent()
 
-    insertion = Node(selection,initial_threshold=variables[selection])
+    insertion = Node(selection,initial_threshold=threshold)
     idx = parent.remove_child(node)
     parent.add_child(insertion,idx)
 
     insertion.add_child(node)
     insertion.add_child(Terminal(np.random.choice(terminals)))
-
-
-def step_threshold(node:Node,step_size:float):
-    """Mutates the threshold value of this particular node using the step_size
-    parameter which acts as a modulator."""
-    threshold = node.get_threshold()
-    direction = np.random.choice([-1,1])
-    threshold = threshold + threshold*direction*step_size
-    node.set_threshold(threshold)

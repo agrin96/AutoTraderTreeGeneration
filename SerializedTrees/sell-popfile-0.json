@@ -1,0 +1,200 @@
+{
+  "parent": {
+    "type": "NODE",
+    "variable": "ulcer",
+    "threshold": 0.08450646632485198,
+    "fixed": false
+  },
+  "children": [
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": "macd_12_26_9",
+        "threshold": 1.3818049524728815,
+        "fixed": false
+      },
+      "children": [
+        {
+          "parent": {
+            "type": "NODE",
+            "variable": "bop_prime",
+            "threshold": 8.284895515584776e-06,
+            "fixed": false
+          },
+          "children": [
+            {
+              "parent": {
+                "type": "NODE",
+                "variable": "stochastic_diff",
+                "threshold": 0.15752516136537006,
+                "fixed": false
+              },
+              "children": [
+                {
+                  "parent": {
+                    "type": "NODE",
+                    "variable": "kama_long",
+                    "threshold": 18182.152361367527,
+                    "fixed": false
+                  },
+                  "children": [
+                    {
+                      "parent": {
+                        "type": "NODE",
+                        "variable": "bop_prime",
+                        "threshold": -3.5076578436751733e-06,
+                        "fixed": false
+                      },
+                      "children": [
+                        {
+                          "type": "TERMINAL",
+                          "variable": "SELL",
+                          "fixed": false
+                        },
+                        {
+                          "parent": {
+                            "type": "NODE",
+                            "variable": "best_ask",
+                            "threshold": 18054.130164804905,
+                            "fixed": false
+                          },
+                          "children": [
+                            {
+                              "type": "TERMINAL",
+                              "variable": "HOLD",
+                              "fixed": false
+                            },
+                            {
+                              "type": "TERMINAL",
+                              "variable": "SELL",
+                              "fixed": false
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "parent": {
+                        "type": "NODE",
+                        "variable": "atr",
+                        "threshold": 19.219581605670463,
+                        "fixed": false
+                      },
+                      "children": [
+                        {
+                          "parent": {
+                            "type": "NODE",
+                            "variable": "stochastic_diff",
+                            "threshold": -0.11556077080357574,
+                            "fixed": false
+                          },
+                          "children": [
+                            {
+                              "type": "TERMINAL",
+                              "variable": "HOLD",
+                              "fixed": false
+                            },
+                            {
+                              "parent": {
+                                "type": "NODE",
+                                "variable": "stochastic",
+                                "threshold": 52.48378087263005,
+                                "fixed": false
+                              },
+                              "children": [
+                                {
+                                  "type": "TERMINAL",
+                                  "variable": "SELL",
+                                  "fixed": false
+                                },
+                                {
+                                  "parent": {
+                                    "type": "NODE",
+                                    "variable": "macd_12_26_9_signal",
+                                    "threshold": 1.128705292519869,
+                                    "fixed": false
+                                  },
+                                  "children": [
+                                    {
+                                      "type": "TERMINAL",
+                                      "variable": "HOLD",
+                                      "fixed": false
+                                    },
+                                    {
+                                      "type": "TERMINAL",
+                                      "variable": "SELL",
+                                      "fixed": false
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "TERMINAL",
+                          "variable": "SELL",
+                          "fixed": false
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "parent": {
+                    "type": "NODE",
+                    "variable": "bollinger_upper",
+                    "threshold": 18114.427395295705,
+                    "fixed": false
+                  },
+                  "children": [
+                    {
+                      "type": "TERMINAL",
+                      "variable": "SELL",
+                      "fixed": false
+                    },
+                    {
+                      "type": "TERMINAL",
+                      "variable": "SELL",
+                      "fixed": false
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "SELL",
+              "fixed": false
+            }
+          ]
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "HOLD",
+          "fixed": false
+        }
+      ]
+    },
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": "rsi_overbought",
+        "threshold": -20.111059169408506,
+        "fixed": false
+      },
+      "children": [
+        {
+          "type": "TERMINAL",
+          "variable": "HOLD",
+          "fixed": false
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "HOLD",
+          "fixed": false
+        }
+      ]
+    }
+  ]
+}
