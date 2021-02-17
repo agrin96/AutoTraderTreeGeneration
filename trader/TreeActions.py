@@ -19,19 +19,22 @@ def stringify_tree(node:Node,previous:str="",_depth:int=0)->str:
         output += F"\n[{node}]"
         if isinstance(node,Terminal):
             return output
-    first,second = node.children()
+    
+    children,last = node.children()[:-1],node.children()[-1]
+    for child in children:
+        if isinstance(child,Terminal):
+            output += F"\n{previous}├───{child}"
+        else:
+            output += F"\n{previous}├───[{child}]"
+            output += stringify_tree(node=child,
+                                     previous=previous+"│   ",
+                                     _depth=_depth+1)
 
-    if isinstance(first,Terminal):
-        output += F"\n{previous}├───{first}"
+    if isinstance(last,Terminal):
+        output += F"\n{previous}└───{last}"
     else:
-        output += F"\n{previous}├───[{first}]"
-        output += stringify_tree(first,previous=previous+"│   ",_depth=_depth+1)
-
-    if isinstance(second,Terminal):
-        output += F"\n{previous}└───{second}"
-    else:
-        output += F"\n{previous}└───[{second}]"
-        output += stringify_tree(second,previous=previous+"    ",_depth=_depth+1)
+        output += F"\n{previous}└───[{last}]"
+        output += stringify_tree(last,previous=previous+"    ",_depth=_depth+1)
     
     return output
 
@@ -46,8 +49,7 @@ def tree_depth(node:Node)->int:
     if isinstance(node,Terminal):
         return 1
     else:
-        first,second = node.children()
-        return max(1 + tree_depth(first),1 + tree_depth(second))
+        return max([1 + tree_depth(child) for child in node.children()])
 
 
 def is_left_child(node:Node)->bool:
@@ -78,9 +80,8 @@ def count_nodes(node:Node,with_terminals:bool=True)->int:
             return 1
         return 0
     else:
-        first,second = node.children()
-        return 1 + count_nodes(first,with_terminals)\
-                 + count_nodes(second,with_terminals)
+        return 1 + np.sum(
+            [count_nodes(child,with_terminals) for child in node.children()])
 
 
 def count_terminals(node:Node)->int:
@@ -88,8 +89,7 @@ def count_terminals(node:Node)->int:
     if isinstance(node,Terminal):
         return 1
     else:
-        first,second = node.children()
-        return count_terminals(first) + count_terminals(second)
+        return np.sum([count_terminals(child) for child in node.children()])
 
 
 def get_node(node:Node,of_depth:int=1,_depth:int=1,_nodes:List[Node]=[])->Node:
@@ -110,9 +110,9 @@ def get_node(node:Node,of_depth:int=1,_depth:int=1,_nodes:List[Node]=[])->Node:
     else:
         if isinstance(node,Terminal):
             return
-        first,second = node.children()
-        get_node(first,of_depth=of_depth,_depth=_depth+1,_nodes=_nodes)
-        get_node(second,of_depth=of_depth,_depth=_depth+1,_nodes=_nodes)
+
+        for child in node.children():
+            get_node(child,of_depth=of_depth,_depth=_depth+1,_nodes=_nodes)
 
     if _depth == 1:
         return np.random.choice(_nodes)
@@ -120,6 +120,7 @@ def get_node(node:Node,of_depth:int=1,_depth:int=1,_nodes:List[Node]=[])->Node:
 
 def get_random_node(node:Node,
                     include_root:bool=False,
+                    include_terminals:bool=True,
                     _depth:int=1,
                     _nodes:List[Node]=[])->Node:
     """Chose a random node from all nodes in this tree excluding the root. If 
@@ -130,31 +131,25 @@ def get_random_node(node:Node,
         _nodes = []
     
     if not node.is_root():
-        _nodes.append(node)
+        if isinstance(node,Terminal):
+            if include_terminals:
+                _nodes.append(node)
+        if isinstance(node,Node):
+            _nodes.append(node)
 
     if include_root and node.is_root():
         _nodes.append(node)
 
     if isinstance(node,Node):
-        first,second = node.children()
-        get_random_node(first,_depth=_depth+1,_nodes=_nodes)
-        get_random_node(second,_depth=_depth+1,_nodes=_nodes)
-    
+        for child in node.children():
+            get_random_node(node=child,
+                            _depth=_depth+1,
+                            _nodes=_nodes,
+                            include_terminals=include_terminals)
+
     if _depth == 1:
         # _nodes = [n for n in _nodes if not n.is_fixed()]
-        choice = np.random.choice(_nodes)
-        if choice.is_fixed():
-            return root_of_fixed(choice)
-        return choice
-
-
-def root_of_fixed(node:Node)->Node:
-    """Traverse the fixed section up and find the root of the fixed section."""
-    parent = node.get_parent()
-    if parent.is_fixed():
-        return root_of_fixed(node.get_parent()) 
-    else:
-        return node 
+        return np.random.choice(_nodes)
 
 
 def replace_node(original:Node,new_node:Node)->Node:
@@ -168,9 +163,8 @@ def replace_node(original:Node,new_node:Node)->Node:
         parent.add_child(new_node,idx)
         return root_of_tree(new_node)
 
-    left,right = original.children()
-    new_node.add_child(left)
-    new_node.add_child(right)
+    for child in original.children():
+        new_node.add_child(child)
 
     if not original.is_root():
         parent = original.get_parent()
@@ -184,24 +178,10 @@ def replace_node(original:Node,new_node:Node)->Node:
     return new_node
 
 
-def replace_node_with_fixed(original:Node,new_fixed:Node)->Node:
-    """Inplace replace a node with a fixed part. This drops the node being
-    replaced and inserts the fixed part in its place."""
-    root_before = root_of_tree(original)
-    
-    parent = original.get_parent()
-    idx = parent.remove_child(original)
-    parent.add_child(new_fixed,idx)
-
-    root_after = root_of_tree(new_fixed)
-
-    if root_before.node_id() != root_after.node_id():
-        raise RuntimeError("Root Modified when it shouldnt have been.")
-    
-    return root_after 
-
-
-def list_tree_variables(node:Node,with_threshold:bool=False,_depth:int=1,_variables:List[str]=[])->[str]:
+def list_tree_variables(node:Node,
+                        with_threshold:bool=False,
+                        _depth:int=1,
+                        _variables:List[str]=[])->[str]:
     """Get a list of variables used in this tree."""
     if _depth == 1:
         _variables = []
@@ -214,17 +194,12 @@ def list_tree_variables(node:Node,with_threshold:bool=False,_depth:int=1,_variab
         else:
             _variables.append(node.get_variable())
 
-        first,second = node.children()
-        list_tree_variables(
-            first,
-            with_threshold=with_threshold,
-            _depth=_depth+1,
-            _variables=_variables)
-        list_tree_variables(
-            second,
-            with_threshold=with_threshold,
-            _depth=_depth+1,
-            _variables=_variables)
+        for child in node.children():
+            list_tree_variables(
+                child,
+                with_threshold=with_threshold,
+                _depth=_depth+1,
+                _variables=_variables)
     
     if _depth == 1:
         return _variables
@@ -238,9 +213,8 @@ def list_tree_terminals(node:Node,_depth:int=1,_terminals:List[str]=[])->[str]:
     if isinstance(node,Terminal):
         _terminals.append(node.get_variable())
     else:
-        first,second = node.children()
-        list_tree_terminals(first,_depth=_depth+1,_terminals=_terminals)
-        list_tree_terminals(second,_depth=_depth+1,_terminals=_terminals)
+        for child in node.children():
+            list_tree_terminals(child,_depth=_depth+1,_terminals=_terminals)
     
     if _depth == 1:
         return list(set(_terminals))
@@ -264,21 +238,6 @@ def clone_node(node:Union[Node,Terminal],deep:bool=True)->Node:
             copy.add_child(clone_node(child,deep))
 
     return copy
-
-
-def set_node_threshold(node:Node,variable:str,new_threshold:float):
-    """Allows you to manually set the threshold of a specific nodes in a tree.
-    The variables are set by comparing the variable names."""
-    if isinstance(node,Node):
-        if node.get_variable() == variable:
-            node.set_threshold(new_threshold)
-            return True
-        first,second = node.children()
-        if set_node_threshold(first,variable,new_threshold):
-            return True
-        if set_node_threshold(second,variable,new_threshold):
-            return True
-    return False
 
 
 def root_of_tree(node:Node)->Node:

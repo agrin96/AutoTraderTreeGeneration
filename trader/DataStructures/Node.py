@@ -1,40 +1,53 @@
 from __future__ import annotations
 from typing import List,Union,Dict
+import numpy as np
+import sys
 
+sys.path.append("../Indicators")
+
+from Indicators.IndicatorVariables import indicator_variables
 from .BaseNode import BaseNode
 from .Terminal import Terminal
 
 class Node(BaseNode):
-    def __init__(self,var_name:str,initial_threshold:float,is_fixed:bool=False):
+    def __init__(self,variable:Dict):
         super().__init__()
-        self._variable = var_name
-        self._threshold = initial_threshold
+        self._variable = variable
         self._children = []
-        self._isfixed = is_fixed
+
 
     @staticmethod
     def node_from_dict(data:Dict)->Node:
         if data["type"] == "NODE":
-            return Node(
-                var_name=data["variable"],
-                initial_threshold=data["threshold"],
-                is_fixed=data["fixed"])
+            variable = [I for I in indicator_variables if I['name'] == data["variable"]["name"]][0]
+            variable["variables"] = data["variable"]["variables"]
+
+            return Node(variable=variable)
 
 
     def evaluate(self,data:Dict)->Node:
+        "Decides based on whether it is a buy, sell or hold."
         value = data[self._variable]
-        if value > self._threshold:
+
+        if value == "BUY":
             return self._children[0]
+        elif value == "HOLD":
+            return self.children[1]
         else:
-            return self._children[-1]
+            return self._children[2]
+
+    
+    def get_decisions(self)->np.array:
+        """Return an array mask of which decisions to make."""
+        return np.array(self._variable["decisions"])
 
     
     def node_as_dict(self)->Dict:
-        return {
-            "type": "NODE",
-            "variable": self._variable,
-            "threshold": self._threshold,
-            "fixed":self._isfixed}
+        written_variable = {
+            "name":self._variable["name"],
+            "variables":self._variable["variables"]}
+
+        return {"type": "NODE","variable": written_variable}
 
 
     def add_child(self,node:Union[Node,Terminal],index:int=-1):
@@ -62,12 +75,12 @@ class Node(BaseNode):
         return self._children
 
 
-    def set_threshold(self,threshold:float):
-        self._threshold = threshold
-
-
     def __repr__(self):
-        return F"{self._variable} > {self._threshold}"
+        variables = self._variable["variables"]
+        # values = (str(variables[k]["value"]) for k in variables.keys())
+        values = (F'{k}={variables[k]["value"]}' for k in variables.keys())
+        values = " ".join(values)
+        return F"{self._variable['name']} of {values}"
 
 
     def __str__(self):

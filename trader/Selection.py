@@ -35,28 +35,3 @@ def tournament_selection(population:List,
                 return next_generation
 
     return next_generation
-
-
-def match_hanging_trees(treesA:List[Dict],treesB:List[Dict])->Tuple:
-    """After executing selection we may be left with `hanging trees` meaning
-    trees which do not have a buy or sell partner because they were not selected
-    in tournament. Because we can guarantee that the lengths of the selected
-    trees is still the same, we can use this function to match up hanging trees
-    so that everyone has a pair."""
-    for atree in treesA:
-        idA = atree["popid"]
-        
-        # Check if this id exists in the second set
-        if len([t for t in treesB if t["popid"] == idA]):
-            continue
-        else:
-            #Find an id in B that isnt assigned in A and the B[id] to the Aid
-            for btree in treesB:
-                idB = btree["popid"]
-                if len([t for t in treesA if t["popid"] == idB]):
-                    continue
-                else:
-                    btree["popid"] = idA
-                    break
-
-    return treesA,treesB

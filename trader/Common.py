@@ -7,6 +7,19 @@ def random_choice(prob_true:float=0.5)->bool:
     return np.random.choice([True,False],p=[prob_true,1-prob_true])
 
 
+def arange_with_endpoint(data:np.array,step:int)->np.array:
+    """Convenience function to get around the fact that the np.arange function
+    doesnt consider the endpoint properly. They reccomend using linspace to
+    solve this, but we need arange, so we manually consider the endpoint.
+    Returns the arange results."""
+    aranged = np.arange(0,data.shape[0],step=step)
+    
+    # Adjust for how np.arange fails to consider the endpoint
+    if aranged[-1] < data.shape[0] and (aranged[-1]+step) < data.shape[0]:
+        aranged =np.append(aranged,aranged[-1]+period)
+    return aranged
+
+
 def parse_configuration(path:str)->Dict:
     """Read in a json configuration file and return it as a dictionary."""
     if not os.path.exists(path):
@@ -17,8 +30,7 @@ def parse_configuration(path:str)->Dict:
         return json.loads(file.read())
 
 
-def store_serialized_pop(serial_buy:str,
-                         serial_sell:str,
+def store_serialized_pop(serial_pop:str,
                          output_folder:str="SerializedTrees/"):
     """Write the serialized population members to the root directory to store
     them. Does not retain information in the pop dictionary just the trees."""
@@ -40,11 +52,6 @@ def store_serialized_pop(serial_buy:str,
         fileids = [int(c.split("-")[-1]) for c in files]
         popid = max(fileids)+1
     
-    filename = F"buy-popfile-{popid}.json"
+    filename = F"popfile-{popid}.json"
     with open(os.path.join(output_path,filename),"w+") as out:
-        out.write(serial_buy)
-
-    filename = F"sell-popfile-{popid}.json"
-    with open(os.path.join(output_path,filename),"w+") as out:
-        out.write(serial_sell)
-    
+        out.write(serial_pop)

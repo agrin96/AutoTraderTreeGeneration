@@ -9,72 +9,62 @@ import argparse
 import os
 from multiprocessing import Pool
 
-from Selection import (
-    tournament_selection,
-    match_hanging_trees)
-
+from Selection import tournament_selection
 from TreeEvaluation import (
     make_pop_decisions,
     score_decisions,
     calculate_fitness,
     natural_price_increase)
 
-from Crossover import (
-    repopulate)
-
-from CreateTree import (
-    create_buy_tree,
-    create_sell_tree)
-
+from Crossover import repopulate
+from CreateTree import create_indicator_tree
 from TreeMutation import point_mutate
 
 
-def population_initialization(config:Dict,variables:Dict,pool:Pool=None)->Tuple:
+def population_initialization(config:Dict,
+                              variables:List[Dict],
+                              pool:Pool=None)->Tuple:
     """Generate a population of buy and sell trees using the configuration
     options and variables provided.
-    Returns a tuple of (buy_trees,sell_trees)"""
-    buy_depth = config["population"]["initial_buy_node_depth"]
-    sell_depth = config["population"]["initial_sell_node_depth"]
+    Returns a tuple of trees"""
+    depth = config["population"]["initial_tree_depth"]
     initial_population = config["population"]["initial_population"]
+    terminals = config["terminals"]
 
-    args = [[variables.copy(),idx,buy_depth] 
+    args = [[variables.copy(),terminals.copy(),idx,depth] 
             for idx in range(initial_population)]
 
-    buy_trees = pool.starmap(create_buy_tree,args)\
+    trees = pool.starmap(create_buy_tree,args)\
                 if pool\
-                else [create_buy_tree(*a) for a in args]
+                else [create_indicator_tree(*a) for a in args]
 
-    args = [[variables.copy(),idx,sell_depth] 
-            for idx in range(initial_population)]
-
-    sell_trees = pool.starmap(create_sell_tree,args)\
-                 if pool\
-                 else [create_sell_tree(*a) for a in args]
-
-    return buy_trees,sell_trees
+    return trees
 
 
-def population_evaluation(buy_trees:List[Dict],
-                          sell_trees:List[Dict],
+def population_evaluation(pops:List[Dict],
                           data:pd.DataFrame,
+                          decision_memo:Dict,
                           pool:Pool=None)->List:
     """Evaluate the buy and sell trees in popid pair order and return a set of
     decisions."""
-    buy_trees = sorted(buy_trees,key=lambda k: k["popid"])
-    sell_trees = sorted(sell_trees,key=lambda k: k["popid"])
-    
-    args = zip(buy_trees,sell_trees,repeat(data,len(buy_trees)))
-    decisions = pool.starmap(make_pop_decisions,args)\
+    pops = sorted(pops,key=lambda k: k["popid"])
+
+    args = zip(pops,repeat(data,len(pops)),repeat(decision_memo,len(pops)))
+    response = pool.starmap(make_pop_decisions,args)\
                 if pool\
                 else [make_pop_decisions(*a) for a in args]
+
+    decisions = []
+    for r in response:
+        decision_memo.update(r[1])
+        decisions.append(r[0])
 
     return decisions
 
 
 def population_fitness(config:Dict,
-                       buy_trees:List[Dict],
-                       sell_trees:List[Dict],
-                       decisions:List[str],
+                       pops:List[Dict],
+                       decisions:List[List[str]],
                        data:pd.DataFrame,
                        pool:Pool=None)->Tuple:
     """Uses the previously evaluated decisions to generate scores for each
@@ -83,48 +73,35 @@ def population_fitness(config:Dict,
     Returns tuple of updated (buy_trees,sell_trees)"""
     starting_funds = config["evaluation"]["initial_funds"]
     trading_fee = config["evaluation"]["trading_fee_percent"]
-    max_buy_depth = config["population"]["max_buy_node_depth"]
-    max_sell_depth = config["population"]["max_sell_node_depth"]
+    max_depth = config["population"]["max_tree_depth"]
 
     args = [[starting_funds,
             trading_fee,
             dset,
-            data["best_bid"].values,
-            data["best_ask"].values] for dset in decisions]
+            data["close"].values] for dset in decisions]
     scores = pool.starmap(score_decisions,args)\
              if pool\
              else [score_decisions(*a) for a in args]
     
-    for score,buy,sell in zip(scores,buy_trees,sell_trees):
+    for score,pop in zip(scores,pops):
         balance,trades = score
-        buy["balance"] = balance
-        buy["trades"] = trades
-
-        sell["balance"] = balance
-        sell["trades"] = trades
+        pop["balance"] = balance
+        pop["trades"] = trades
 
     long_balance = natural_price_increase(config,data)
 
-    args = [[pop,max_buy_depth,starting_funds,long_balance] 
-            for pop in buy_trees]
-    buy_trees = pool.starmap(calculate_fitness,args)\
-                if pool\
-                else [calculate_fitness(*a) for a in args]
+    args = [[pop,max_depth,starting_funds,long_balance] 
+            for pop in pops]
+    pops = pool.starmap(calculate_fitness,args)\
+           if pool\
+           else [calculate_fitness(*a) for a in args]
 
-    args = [[pop,max_sell_depth,starting_funds,long_balance]
-            for pop in sell_trees]
-    sell_trees = pool.starmap(calculate_fitness,args)\
-                 if pool\
-                 else [calculate_fitness(*a) for a in args]
-
-    return buy_trees,sell_trees
+    return pops
 
 
 def population_mutation(config:Dict,
-                        buy_trees:List[Dict],
-                        sell_trees:List[Dict],
+                        pops:List[Dict],
                         variables:Dict,
-                        step_size:float,
                         pool:Pool=None)->Tuple:
     """Execute mutation on the population of buy and sell trees. Returns the
     mutated set of buy and sell trees including any non affected trees."""
@@ -132,71 +109,47 @@ def population_mutation(config:Dict,
     mutation_rate = config["mutation"]["mutation_rate"]
     alphas = config["mutation"]["alphas"]
 
-    buy_trees = sorted(buy_trees,key=lambda k: k["fitness"])
-    sell_trees = sorted(sell_trees,key=lambda k: k["fitness"])
+    pops = sorted(pops,key=lambda k: k["fitness"])
 
     # save the best members for next run
-    holding_buy_trees = []
-    holding_sell_trees = []
+    held = []
     for _ in range(alphas):
-        temp_buy = max(buy_trees,key=lambda k: k["fitness"])
-        temp_sell = max(sell_trees,key=lambda k: k["fitness"])
-        holding_buy_trees.append(temp_buy)
-        holding_sell_trees.append(temp_sell)
-        buy_trees.remove(temp_buy)
-        sell_trees.remove(temp_sell)
+        temp = max(pops,key=lambda k: k["fitness"])
+        held.append(temp)
+        pops.remove(temp)
 
     args = [
         [pop,
         variables.copy(),
-        ["BUY","HOLD"],
+        ["BUY","HOLD","SELL"],
         mutation_rate,
-        mutation_types.copy()] for pop in buy_trees]
+        mutation_types.copy()] for pop in pops]
 
-    mutated_buys = pool.starmap(point_mutate,args)\
+    mutated = pool.starmap(point_mutate,args)\
                    if pool\
                    else [point_mutate(*a) for a in args]
-    buy_trees = holding_buy_trees + mutated_buys
+    pops = held + mutated
 
-    args = [
-        [pop,
-        variables.copy(),
-        ["SELL","HOLD"],
-        mutation_rate,
-        mutation_types.copy()] for pop in sell_trees]
-
-    mutated_sells = pool.starmap(point_mutate,args)\
-                    if pool\
-                    else [point_mutate(*a) for a in args]
-    sell_trees = holding_sell_trees + mutated_sells
-
-    return buy_trees,sell_trees 
+    return pops
 
 
 def population_selection(config:Dict,
-                         buy_trees:List[Dict],
-                         sell_trees:List[Dict])->Tuple:
+                         pops:List[Dict])->Tuple:
     """Execute tournament selection on the population using the parameters
     set in the config. Returns the buy and sell trees tuple."""
     tourn_size = config["selection"]["tournament_size"]
     survivor_percent = config["selection"]["survivors_percent"]
 
-    buy_trees = tournament_selection(buy_trees,tourn_size,survivor_percent)
-    sell_trees = tournament_selection(sell_trees,tourn_size,survivor_percent)
+    pops = tournament_selection(pops,tourn_size,survivor_percent)
 
-    return buy_trees,sell_trees
+    return pops
 
 
 def population_reproduction(config:Dict,
-                            buy_trees:List[Dict],
-                            sell_trees:List[Dict])->Tuple:
+                            pops:List[Dict])->Tuple:
     """Run crossover reproduction on the population with config options as is.
     and return the tuple of the buy/sell population."""
     crossover = config["crossover"]["crossover_rate"]
     max_population = config["population"]["max_population"]
 
-    buy_trees = repopulate(buy_trees,max_population,crossover)
-    sell_trees = repopulate(sell_trees,max_population,crossover)
-    buy_trees,sell_trees = match_hanging_trees(buy_trees,sell_trees)
-
-    return buy_trees,sell_trees
+    return repopulate(pops,max_population,crossover)

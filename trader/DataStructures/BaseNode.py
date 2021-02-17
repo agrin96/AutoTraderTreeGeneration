@@ -1,12 +1,11 @@
 from __future__ import annotations
-from typing import List,Union,Dict
+from typing import List,Union,Dict,Any
 import uuid
 
 class BaseNode:
     def __init__(self):
         self._parent = None
         self._id = str(uuid.uuid4()).replace("-","")
-        self._isfixed = False
 
     def get_parent(self)->BaseNode:
         return self._parent
@@ -22,6 +21,9 @@ class BaseNode:
 
     def get_variable(self)->str:
         return self._variable
+
+    def set_variable(self,new_value:Any):
+        self._variable = new_value
 
     def is_fixed(self)->bool:
         return self._isfixed

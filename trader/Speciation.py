@@ -61,10 +61,10 @@ def structural_similarity(treeA:Node,treeB:Node)->float:
             if isinstance(treeB,Terminal):
                 return 0
             else:
-                first,second = treeA.children()
-                firstb,secondb = treeB.children()
-                return 1 + structural_similarity(first,firstb)\
-                        + structural_similarity(second,secondb)
+                count = 1
+                for childA,childB in zip(treeA.children(),treeB.children()):
+                    count += structural_similarity(childA,childB)
+                return count
     
     total_nodes = count_nodes(treeA) + count_nodes(treeB)
     return get_similarity(treeA,treeB) / total_nodes

@@ -2,9 +2,10 @@ from __future__ import annotations
 import pandas as pd
 import numpy as np
 from typing import Dict,Tuple,List
+from Common import arange_with_endpoint
 
 
-def prepare_raw_data(data_path:str,config_data:Dict)->pd.DataFrame:
+def prepare_raw_data(data_path:str)->pd.DataFrame:
     """Read in the specified data and select only the variables used in the
     in the creation of trees. Also clean up the index column if it exists
     Parameters:
@@ -13,10 +14,7 @@ def prepare_raw_data(data_path:str,config_data:Dict)->pd.DataFrame:
     if "Unnamed: 0" in df.columns:
         df.drop("Unnamed: 0",inplace=True,axis=1)
 
-    if "variables" in config_data:
-        return df[config_data["variables"]]
-    else:
-        return df
+    return df[["best_ask","best_bid","total_traded_asset"]]
 
 
 def continuos_train_test_split(data:pd.DataFrame,split:float)->Tuple:
@@ -28,8 +26,8 @@ def continuos_train_test_split(data:pd.DataFrame,split:float)->Tuple:
     Returns a tuple of (train_dataframe, test_dataframe)"""
     split_point = int(len(data.index) * split)
 
-    train = data.iloc[:split_point].copy()
-    test = data.iloc[split_point:].copy()
+    train = data.iloc[:split_point].copy().reset_index(drop=True)
+    test = data.iloc[split_point:].copy().reset_index(drop=True)
 
     return train,test
 
@@ -68,3 +66,54 @@ def create_data_samples(data:pd.DataFrame,
         " continuously. Therefore no fixed samples can be created.")
     
     return [create_data_subset(data,split) for _ in range(num_samples)]
+
+
+def convert_ticker_to_candles(ticker:pd.DataFrame,
+                              period:int=30)->pd.DataFrame:
+    """Generates a dataframe of candle data using the specified options. Prices
+    used are the best_asks. Volumes are determined by messing with the 24hour
+    traded volume that we get each second. We diff the volumes to see how it
+    changes every second and then cumsum with an initial starting volume to
+    generate the volume traded at every second.
+    Parameters:
+        ticker (pd.DataFrame): The raw price and voluem data collected
+        period (int): This is the candle stick period in seconds.
+    Returns a new dataframe which only contains the candlestick data."""
+    prices = ticker["best_ask"].values
+
+    seed_volume = 100000.0 
+    volume_data = np.diff(ticker["total_traded_asset"].values)
+    volume_data = np.cumsum(np.insert(volume_data,0,seed_volume))
+
+    open_idx = arange_with_endpoint(data=ticker.index.values,step=period)
+    close_idx = np.add(open_idx,period-1)
+
+    opens = prices[open_idx]
+    if close_idx[-1] > prices.shape[0]:
+        closes = prices[close_idx[:-1]]
+        closes = np.append(closes,prices[-1])
+    else:
+        closes = prices[close_idx]
+
+    highs = []
+    lows = []
+    volumes = []
+    elements = []
+
+    for o,c in zip(open_idx,close_idx):
+        # Add one because numpy indexing excludes the last
+        temp = prices[o:c+1]
+        highs.append(np.max(temp))
+        lows.append(np.min(temp))
+        volumes.append(np.sum(volume_data[o:c]))
+        elements.append(len(temp))
+
+    candles = pd.DataFrame()
+    candles["index"] = np.array(open_idx,dtype=np.intc)
+    candles["open"] = np.array(opens,dtype=np.float64)
+    candles["close"] = np.array(closes,dtype=np.float64)
+    candles["low"] = np.array(lows,dtype=np.float64)
+    candles["high"] = np.array(highs,dtype=np.float64)
+    candles["volume"] = np.array(volumes,dtype=np.float64)
+    candles["elements"] = np.array(elements,dtype=np.intc)
+    return candles

@@ -17,12 +17,8 @@ def serialize_tree(node:Node,_depth:int=0)->str:
         return node.node_as_dict()
     
     output = {"parent":node.node_as_dict()}
-    first,second = node.children()
-
-    output["children"] = [
-        serialize_tree(first,_depth=_depth+1),
-        serialize_tree(second,_depth=_depth+1)]
-
+    output["children"] = [serialize_tree(child,_depth=_depth+1)
+                          for child in node.children()]
     if _depth == 0:
         return json.dumps(output,ensure_ascii=False,indent=2)
     else:
@@ -44,10 +40,8 @@ def deserialize_tree(json_data:str,_depth:int=0)->Node:
         return Terminal.terminal_from_dict(tree)
     node = Node.node_from_dict(tree["parent"])
     
-    # Our tree trees are binary trees thus guaranteed 2 children
-    first,second = tree["children"]
-    node.add_child(deserialize_tree(first,_depth=_depth+1))
-    node.add_child(deserialize_tree(second,_depth=_depth+1))
+    for child in tree["children"]:
+        node.add_child(deserialize_tree(child,_depth=_depth+1))
 
     if node.is_root():
         return node

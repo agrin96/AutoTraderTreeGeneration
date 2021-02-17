@@ -231,15 +231,15 @@ def train_trader(config):
 
     
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description='Train AutoTrading Genetic Algorithm')
-    parser.add_argument('--config',type=str,dest="config",
-                        help='Genetic Algorithm Configuration file',
-                        required=True)
-    config_path = parser.parse_args().config
-    config = parse_configuration(os.path.abspath(config_path))
+    # parser = argparse.ArgumentParser(
+    #     description='Train AutoTrading Genetic Algorithm')
+    # parser.add_argument('--config',type=str,dest="config",
+    #                     help='Genetic Algorithm Configuration file',
+    #                     required=True)
+    # config_path = parser.parse_args().config
+    # config = parse_configuration(os.path.abspath(config_path))
     
-    procs = start_process_pool(config)
-    print(F"Starting Trader Training with {procs} processes.")
+    # procs = start_process_pool(config)
+    # print(F"Starting Trader Training with {procs} processes.")
 
     train_trader(config)

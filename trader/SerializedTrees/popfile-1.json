@@ -1,0 +1,263 @@
+{
+  "parent": {
+    "type": "NODE",
+    "variable": {
+      "name": "macd",
+      "variables": {
+        "fast_period": {
+          "value": 13,
+          "range": {
+            "upper": 100,
+            "lower": 2
+          }
+        },
+        "slow_period": {
+          "value": 33,
+          "range": {
+            "upper": 100,
+            "lower": 2
+          }
+        },
+        "signal_period": {
+          "value": 91,
+          "range": {
+            "upper": 100,
+            "lower": 2
+          }
+        }
+      }
+    }
+  },
+  "children": [
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": {
+          "name": "macd",
+          "variables": {
+            "fast_period": {
+              "value": 13,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            },
+            "slow_period": {
+              "value": 33,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            },
+            "signal_period": {
+              "value": 91,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "parent": {
+            "type": "NODE",
+            "variable": {
+              "name": "mfi",
+              "variables": {
+                "buy_threshold": {
+                  "value": 95,
+                  "range": {
+                    "upper": 100,
+                    "lower": 50
+                  }
+                },
+                "sell_threshold": {
+                  "value": 42,
+                  "range": {
+                    "upper": 50,
+                    "lower": 0
+                  }
+                },
+                "period": {
+                  "value": 12,
+                  "range": {
+                    "upper": 100,
+                    "lower": 2
+                  }
+                }
+              }
+            }
+          },
+          "children": [
+            {
+              "type": "TERMINAL",
+              "variable": "BUY",
+              "fixed": false
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "HOLD",
+              "fixed": false
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "SELL",
+              "fixed": false
+            }
+          ]
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "HOLD",
+          "fixed": false
+        },
+        {
+          "parent": {
+            "type": "NODE",
+            "variable": {
+              "name": "chaikin",
+              "variables": {
+                "fast_period": {
+                  "value": 67,
+                  "range": {
+                    "upper": 100,
+                    "lower": 2
+                  }
+                },
+                "slow_period": {
+                  "value": 42,
+                  "range": {
+                    "upper": 100,
+                    "lower": 2
+                  }
+                },
+                "signal_period": {
+                  "value": 28,
+                  "range": {
+                    "upper": 100,
+                    "lower": 2
+                  }
+                }
+              }
+            }
+          },
+          "children": [
+            {
+              "type": "TERMINAL",
+              "variable": "BUY",
+              "fixed": false
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "HOLD",
+              "fixed": false
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "SELL",
+              "fixed": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": {
+          "name": "macd",
+          "variables": {
+            "fast_period": {
+              "value": 13,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            },
+            "slow_period": {
+              "value": 33,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            },
+            "signal_period": {
+              "value": 91,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "type": "TERMINAL",
+          "variable": "BUY",
+          "fixed": false
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "HOLD",
+          "fixed": false
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "HOLD",
+          "fixed": false
+        }
+      ]
+    },
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": {
+          "name": "chaikin",
+          "variables": {
+            "fast_period": {
+              "value": 67,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            },
+            "slow_period": {
+              "value": 42,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            },
+            "signal_period": {
+              "value": 28,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "type": "TERMINAL",
+          "variable": "BUY",
+          "fixed": false
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "HOLD",
+          "fixed": false
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "SELL",
+          "fixed": false
+        }
+      ]
+    }
+  ]
+}
