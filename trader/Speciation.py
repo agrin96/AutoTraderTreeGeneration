@@ -81,8 +81,9 @@ def structural_similarity_clustering(population:List[Dict])->List[Dict]:
 
     # choose some pops randomly as cluster centers and remove them from the pool
     centers = np.random.choice(population,total_clusters,replace=False)
+
     for cluster,center in enumerate(centers):
-        population = [p for p in population if p["popid"]!=center["popid"]]
+        population.remove(center)
         center["cluster"] = cluster
         clustered.append(center)
 
@@ -95,13 +96,13 @@ def structural_similarity_clustering(population:List[Dict])->List[Dict]:
                     closest = (pop,measure)
             
             # Assign cluster to the closest pop and remove it from the running.
-            population = [p for p in population 
-                          if p["popid"]!=closest[0]["popid"]]
+            population.remove(closest[0])
             closest[0]["cluster"] = cluster
             clustered.append(closest[0])
 
             if len(clustered) >= max_population:
                 return clustered
+        
     return clustered
 
 

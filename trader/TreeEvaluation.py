@@ -25,15 +25,16 @@ def update_decisions(node:Node,data:pd.DataFrame,decision_memo:Dict):
 		return
 	
 	indicator = node.get_variable()
-	if indicator["memo"] in decision_memo:
-		indicator["decisions"] = decision_memo["memo"]	
+	memo_value = zlib.adler32(F"{node}{len(data.index)}".encode('utf-8'))
+
+	if memo_value in decision_memo:
+		indicator["decisions"] = decision_memo[memo_value]	
 	else:
 		decision_generator = indicator["generator"]
 		variables = {k:v["value"] for k,v in indicator["variables"].items()}
 		indicator["decisions"] = decision_generator(data,**variables)
-		
-		memo_value = zlib.adler32(str(node).encode('utf-8'))
-		indicator[memo_value] = indicator["decisions"]
+
+		indicator["memo"] = indicator["decisions"]
 		decision_memo[memo_value] = indicator["decisions"]
 
 	node.set_variable(indicator)

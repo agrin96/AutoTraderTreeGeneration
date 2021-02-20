@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List,Dict
 
 import numpy as np
+from copy import deepcopy
 
 from Common import random_choice
 from DataStructures.Node import Node
@@ -44,7 +45,7 @@ def point_mutate(
         return pop
     
     tree = pop["tree"]
-    unused_variables = variables.copy()
+    unused_variables = deepcopy(variables)
     chosen = get_random_node(tree,include_root=True)
     
     if random_choice(prob_true=mutation_types["replace"]):
@@ -60,8 +61,9 @@ def point_mutate(
         chosen = get_random_node(tree)
         replace_with_terminal(chosen,terminals)
 
-    chosen = get_random_node(tree,include_root=True,include_terminals=False)
-    mutate_indicator_parameters(chosen)
+    if random_choice(prob_true=mutation_types["parameter"]):
+        chosen = get_random_node(tree,include_root=True,include_terminals=False)
+        mutate_indicator_parameters(chosen)
     
     pop["tree"] = tree
     return pop
@@ -112,7 +114,7 @@ def replace_with_node(node:Node,variables:List[Dict],terminals:List[str])->Node:
         replacement = create_stump(selection,terminals)
         return replace_node(node,new_node=replacement)
     else:
-        replacement = Node(selection)
+        replacement = Node(deepcopy(selection))
         return replace_node(node,new_node=replacement)
 
 
@@ -121,7 +123,7 @@ def insert_node(node:Node,variables:List[Dict],terminals:List[str]):
     not be a root."""
     parent = node.get_parent()
 
-    insertion = Node(np.random.choice(variables))
+    insertion = Node(deepcopy(np.random.choice(variables)))
     idx = parent.remove_child(node)
     parent.add_child(insertion,idx)
 

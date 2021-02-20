@@ -49,10 +49,10 @@ def create_data_subset(data:pd.DataFrame,split:float)->pd.DataFrame:
     split_point = np.random.randint(0,maximum_offset)
     split_offset = split_point + int(data_size*split)
     
-    print(F"\tSampling data from [{split_point}:{split_offset}]")
+    print(F"\tSampling in interval [{split_point}:{split_offset}]")
 
     sampled_data = data.iloc[split_point:split_offset].copy()
-    return sampled_data
+    return sampled_data.reset_index(drop=True)
 
 
 def create_data_samples(data:pd.DataFrame,

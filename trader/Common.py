@@ -50,7 +50,7 @@ def store_serialized_pop(serial_pop:str,
         files = [c for c in contents if "popfile" in c]
         files = [c.split('.')[0] for c in contents]
         fileids = [int(c.split("-")[-1]) for c in files]
-        popid = max(fileids)+1
+        popid = max(fileids)+1 if len(fileids)>0 else 0
     
     filename = F"popfile-{popid}.json"
     with open(os.path.join(output_path,filename),"w+") as out:

@@ -10,7 +10,10 @@ def pprint_generation_statistics(pops:List[Dict],
     generation population. This step occurs before mutation and selection."""
     print("\n\tCurrent Best Tree")
     best = max(pops,key=lambda k: k["fitness"])
-    print("\t"+str(best))
+    
+    output = F"POPID: {best['popid']} Fitness: {best['fitness']}"
+    output += F" Balance: {best['balance']} Trades: {best['trades']}"
+    print("\t"+str(output))
     
     print("\n\tAverage Balance and Fitness of Trees")
     mean_fitness = np.mean(list(map(lambda k: k["fitness"],pops)))

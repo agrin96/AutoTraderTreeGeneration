@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List,Dict
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
@@ -31,7 +32,7 @@ def recursive_tree_creation(
     
     # Add the nonleaf children
     for _ in terminals:
-        node = Node(np.random.choice(vars_available))
+        node = Node(deepcopy(np.random.choice(vars_available)))
         parent.add_child(node)
 
         recursive_tree_creation(parent=node,
@@ -57,7 +58,7 @@ def create_tree(
         raise RuntimeError("Minimum tree depth is 2 for stumps.")
 
     selection = np.random.choice(variables)
-    root = Node(variable=selection)
+    root = Node(variable=deepcopy(selection))
 
     recursive_tree_creation(
         parent=root,
@@ -69,7 +70,7 @@ def create_tree(
     return root
 
 
-def create_stump(variable:str,terminals:List[str])->Node:
+def create_stump(variable:Dict,terminals:List[str])->Node:
     """Create a node with two terminal children. This is the simplest valid
     tree structure.
     Parameters:
@@ -77,7 +78,7 @@ def create_stump(variable:str,terminals:List[str])->Node:
         terminals (List[str]): The terminals we are allowed to choose from in
             this stump creation.
     Returns the root node of the stump."""
-    stump = Node(variable)
+    stump = Node(deepcopy(variable))
     for t in terminals:
         stump.add_child(Terminal(t))
 

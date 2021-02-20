@@ -1,31 +1,29 @@
 {
     "save_best":true,
     "process_pool_size":1,
-    "generations": 2,
+    "generations": 200,
     "training":{
-        "traintest_split":0.66,
-        "train_sampling_split":0.10,
-        "rotation_interval":2,
+        "traintest_split":0.5,
+        "train_sampling_split":0.20,
+        "rotation_interval":10,
         "rotate_training_data":true,
-        "training_sets":2
+        "training_sets":5
     },
     "population":{
-        "initial_population":50,
-        "max_population":50,
+        "initial_population":200,
+        "max_population":200,
         "initial_tree_depth":3,
         "max_tree_depth":15
     },
     "mutation":{
         "mutation_rate":0.75,
-        "threshold_step_percent":0.75,
-        "threshold_step_interval":10,
         "mutation_types": {
             "replace":0.50,
-            "insert_node":1.0,
-            "insert_terminal":0.25,
-            "step_threshold":0.90
+            "insert_node":0.50,
+            "insert_terminal":0.3,
+            "parameter":0.70
         },
-        "alphas":10
+        "alphas":6
     },
     "evaluation":{
         "initial_funds":100,

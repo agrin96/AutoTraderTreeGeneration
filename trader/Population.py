@@ -8,6 +8,7 @@ from time import time
 import argparse
 import os
 from multiprocessing import Pool
+from copy import deepcopy
 
 from Selection import tournament_selection
 from TreeEvaluation import (
@@ -20,6 +21,8 @@ from Crossover import repopulate
 from CreateTree import create_indicator_tree
 from TreeMutation import point_mutate
 
+from TreeActions import pprint_tree
+
 
 def population_initialization(config:Dict,
                               variables:List[Dict],
@@ -31,10 +34,10 @@ def population_initialization(config:Dict,
     initial_population = config["population"]["initial_population"]
     terminals = config["terminals"]
 
-    args = [[variables.copy(),terminals.copy(),idx,depth] 
+    args = [[deepcopy(variables),terminals.copy(),idx,depth] 
             for idx in range(initial_population)]
 
-    trees = pool.starmap(create_buy_tree,args)\
+    trees = pool.starmap(create_indicator_tree,args)\
                 if pool\
                 else [create_indicator_tree(*a) for a in args]
 
@@ -47,8 +50,6 @@ def population_evaluation(pops:List[Dict],
                           pool:Pool=None)->List:
     """Evaluate the buy and sell trees in popid pair order and return a set of
     decisions."""
-    pops = sorted(pops,key=lambda k: k["popid"])
-
     args = zip(pops,repeat(data,len(pops)),repeat(decision_memo,len(pops)))
     response = pool.starmap(make_pop_decisions,args)\
                 if pool\
@@ -109,8 +110,6 @@ def population_mutation(config:Dict,
     mutation_rate = config["mutation"]["mutation_rate"]
     alphas = config["mutation"]["alphas"]
 
-    pops = sorted(pops,key=lambda k: k["fitness"])
-
     # save the best members for next run
     held = []
     for _ in range(alphas):
@@ -129,7 +128,7 @@ def population_mutation(config:Dict,
                    if pool\
                    else [point_mutate(*a) for a in args]
     pops = held + mutated
-
+    
     return pops
 
 
@@ -139,8 +138,16 @@ def population_selection(config:Dict,
     set in the config. Returns the buy and sell trees tuple."""
     tourn_size = config["selection"]["tournament_size"]
     survivor_percent = config["selection"]["survivors_percent"]
+    alphas = config["mutation"]["alphas"]
 
-    pops = tournament_selection(pops,tourn_size,survivor_percent)
+    # save the best members for next run
+    held = []
+    for _ in range(alphas):
+        temp = max(pops,key=lambda k: k["fitness"])
+        held.append(temp)
+        pops.remove(temp)
+
+    pops = held + tournament_selection(pops,tourn_size,survivor_percent)
 
     return pops
 

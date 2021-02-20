@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List,Union,Dict
 import numpy as np
 import sys
+from copy import deepcopy
 
 sys.path.append("../Indicators")
 
@@ -19,10 +20,11 @@ class Node(BaseNode):
     @staticmethod
     def node_from_dict(data:Dict)->Node:
         if data["type"] == "NODE":
-            variable = [I for I in indicator_variables if I['name'] == data["variable"]["name"]][0]
+            variable = [I for I in indicator_variables 
+                        if I['name'] == data["variable"]["name"]][0]
             variable["variables"] = data["variable"]["variables"]
 
-            return Node(variable=variable)
+            return Node(variable=deepcopy(variable))
 
 
     def evaluate(self,data:Dict)->Node:
@@ -47,7 +49,7 @@ class Node(BaseNode):
             "name":self._variable["name"],
             "variables":self._variable["variables"]}
 
-        return {"type": "NODE","variable": written_variable}
+        return deepcopy({"type": "NODE","variable": written_variable})
 
 
     def add_child(self,node:Union[Node,Terminal],index:int=-1):

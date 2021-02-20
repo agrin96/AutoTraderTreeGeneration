@@ -75,8 +75,27 @@ def main(config:Dict):
 
     ticker = prepare_raw_data(data_path="./Data/BTCUSDT_ticker.csv")
     candles = convert_ticker_to_candles(ticker=ticker,period=30)
-    test,train = continuos_train_test_split(candles,split=0.5)
+    all_train,test = continuos_train_test_split(candles,split=0.5)
+    train = all_train
 
+    # Decide if we will do any sampling of the training set.
+    rotate_data = config["training"]["rotate_training_data"]
+    rotation_interval = config["training"]["rotation_interval"]
+
+    fixed_training_sets = []
+    current_train_set = 0
+
+    # If our training is sampled, decide whether its a fixed N samples or 
+    # continous sample every K generations.
+    if rotate_data:
+        print("\tCreating Rotating Training Sets.")
+        sets = config["training"]["training_sets"]
+        set_split = config["training"]["train_sampling_split"]
+
+        fixed_training_sets = create_data_samples(all_train,sets,set_split)
+        train = fixed_training_sets[current_train_set]
+
+    print(train)
     pops = population_initialization(config,indicator_variables,reusable_pool)
 
     evaluation_time = []
@@ -94,7 +113,6 @@ def main(config:Dict):
         print("\tbalance: ",natural_price_increase(config,train))
         print("|-Evaluating")
         start = time()
-        print("MEMO: ",evaluation_memo)
         decisions = population_evaluation(pops,train,evaluation_memo,reusable_pool)
         evaluation_time.append(time()-start)
 
@@ -112,7 +130,7 @@ def main(config:Dict):
         start = time()
         pops = population_selection(config,pops)
         selection_time.append(time()-start)
-    
+
         pprint_generation_statistics(pops,balances)
 
         print("|-Repopulating via Reproduction")
@@ -120,12 +138,23 @@ def main(config:Dict):
         pops = population_reproduction(config,pops)
         reproduction_time.append(time()-start)
 
+
         print("|-Mutating Population")
         start = time()
         pops = population_mutation(config,pops,indicator_variables,reusable_pool)
         mutation_time.append(time()-start)
+
+        if rotate_data:
+            if generation % rotation_interval == 0:
+                print("|-Rotating training dataset.")
+                current_train_set += 1
+                if current_train_set >= len(fixed_training_sets):
+                    current_train_set = 0
+                train = fixed_training_sets[current_train_set]
         print("|-------------------------------------------------------------|")
-        
+    
+    # Reset memo dict since values are no longer valid
+    evaluation_memo = {}
     print("\n\nEvaluating Best Members on Test Dataset")
     print("|-Long position baseline.")
     print(F"\tbalance: {natural_price_increase(config,test)}\n")
@@ -140,7 +169,9 @@ def main(config:Dict):
         print("|-Saving best members serialized.")
         store_serialized_pop(serial_pop=serialize_tree(best["tree"]))
     
-    print(best)
+    output = F"POPID: {best['popid']} Fitness: {best['fitness']}"
+    output += F" Balance: {best['balance']} Trades: {best['trades']}"
+    print("\t"+str(output))
     pprint_tree(best["tree"])
 
     print("\n|-------------------------------------------------------------|")
