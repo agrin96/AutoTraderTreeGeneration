@@ -125,19 +125,6 @@ def generate_macd_decisions(candles:pd.DataFrame,
     return decisions
 
 
-def generate_bollinger_decisions(candles:pd.DataFrame,
-                                 buy_threshold:float=0.20,
-                                 sell_threshold:float=0.80,
-                                 period:int=20)->List[str]:
-    """Generate bollinger band decisions."""
-    _,_,_,_,percentB = bollinger_bands(candles["close"],period)
-
-    decisions = np.where(percentB > sell_threshold,"SELL",'HOLD')
-    decisions = np.where(percentB < buy_threshold,"BUY",decisions)
-
-    return decisions
-
-
 def generate_stochastic_decisions(candles:pd.DataFrame,
                                   buy_threshold:float=20,
                                   sell_threshold:float=80,
