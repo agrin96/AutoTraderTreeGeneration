@@ -4,8 +4,8 @@
     "generations": 50,
     "candle_period": 300,
     "training":{
-        "traintest_split":0.5,
-        "train_sampling_split":0.70,
+        "traintest_split":0.6,
+        "train_sampling_split":0.5,
         "rotation_interval":10,
         "rotate_training_data":true,
         "training_sets":2

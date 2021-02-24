@@ -80,10 +80,10 @@ def mutate_indicator_parameters(node:Node):
 
     modulator = 1
     is_float = False
-    if high - low == 2 or high - low == 1:
+    if high - low == 2 or high - low == 1 or (0 < high - low < 1):
         modulator = 100
         is_float = True
-    
+
     # This is cleaner than using the random floats which can be ridiculous
     # in their length.
     new_value = np.random.randint(low*modulator,high*modulator) / modulator
