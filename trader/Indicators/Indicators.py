@@ -66,7 +66,7 @@ def exponential_moving_average(
     alpha = (smoothing / (1+period))
     # If nans, figure out the index of all the nans and offset by that.
     offset = np.sum(np.where(np.isfinite(data),0,1))
-    prices = data[offset:]
+    prices = np.array(data[offset:])
 
     seed_value = np.mean(prices[:period])
     ema = np.array([*np.repeat(np.nan,period-1+offset),seed_value])
@@ -198,6 +198,7 @@ def relative_strength_index(data:pd.DataFrame,period:int)->np.array:
     and values below 30 are oversold. Implemented following:
     https://www.investopedia.com/terms/r/rsi.asp"""
     price_changes = np.diff(data["close"])
+
     gains = np.where(price_changes>0,price_changes,0.0)
     gains = np.insert(gains,0,0)
 
@@ -206,14 +207,16 @@ def relative_strength_index(data:pd.DataFrame,period:int)->np.array:
 
     prev_gain = gains[:period].mean()
     prev_losses = losses[:period].mean()
-
+    prev_losses = np.where(prev_losses==0,1,prev_losses)
     rs = np.array([*np.repeat(np.nan,period-1),prev_gain/prev_losses])
 
     index = period
     while index < len(data.index):
         prev_gain = (prev_gain*(period-1) + gains[index])/period
+        
         prev_losses = (prev_losses*(period-1) + losses[index])/period
-
+        prev_losses = np.where(prev_losses==0,1,prev_losses)
+        
         rs = np.append(rs,prev_gain/prev_losses)
         index += 1
 
@@ -342,13 +345,13 @@ def money_flow_index(data:pd.DataFrame,period:int)->np.array:
     due to strong pressure one way or another.
     Returns the MFI for each candle period."""
     typical_price = np.divide(data["high"]+data["low"]+data["close"],3)
-    raw_money_flow = data["volume"]*typical_price
+    raw_money_flow = np.abs(data["volume"]*typical_price)
     
     price_diffrence = typical_price - array_shift(typical_price,1)
 
     positive_money = np.abs(np.where(price_diffrence>=0,raw_money_flow,0))
     negative_money = np.abs(np.where(price_diffrence<0,raw_money_flow,0))
-
+    
     period_positive_money = np.convolve(positive_money,np.ones(period),'valid')
     period_positive_money = np.append(
         np.repeat(np.nan,period-1),period_positive_money)

@@ -72,9 +72,10 @@ def start_process_pool(config_data:Dict)->int:
 def main(config:Dict):
     global reusable_pool,evaluation_memo
     runtime_start = time()
+    candle_period = config["candle_period"]
 
     ticker = prepare_raw_data(data_path="./Data/BTCUSDT_ticker.csv")
-    candles = convert_ticker_to_candles(ticker=ticker,period=30)
+    candles = convert_ticker_to_candles(ticker=ticker,period=candle_period)
     all_train,test = continuos_train_test_split(candles,split=0.5)
     train = all_train
 
@@ -95,7 +96,6 @@ def main(config:Dict):
         fixed_training_sets = create_data_samples(all_train,sets,set_split)
         train = fixed_training_sets[current_train_set]
 
-    print(train)
     pops = population_initialization(config,indicator_variables,reusable_pool)
 
     evaluation_time = []
@@ -158,7 +158,8 @@ def main(config:Dict):
     print("\n\nEvaluating Best Members on Test Dataset")
     print("|-Long position baseline.")
     print(F"\tbalance: {natural_price_increase(config,test)}\n")
-
+    print(test)
+    # return
     decisions = population_evaluation(pops,test,evaluation_memo,reusable_pool)
     pops = population_fitness(config,pops,decisions,test,reusable_pool)
 

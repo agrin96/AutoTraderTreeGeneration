@@ -12,7 +12,8 @@ from .Indicators import (
     simple_moving_average,
     array_shift,
     moving_average_convergance_divergance,
-    on_balance_volume)
+    stochastic_oscillator,
+    bollinger_bands)
 
 # def generate_obv_decisions(candles:pd.DataFrame)
 
@@ -110,7 +111,7 @@ def generate_macd_decisions(candles:pd.DataFrame,
     signal, and from positive to negative a sell signal.We determine this move 
     by shifting the signal back and comparing it with its older values
     Returns the list of decisions."""
-    macd,signal,indicator = moving_average_convergance_divergance(
+    _,_,indicator = moving_average_convergance_divergance(
         data=candles["close"],
         fast_window=fast_period,
         slow_window=slow_period,
@@ -123,3 +124,27 @@ def generate_macd_decisions(candles:pd.DataFrame,
 
     return decisions
 
+
+def generate_bollinger_decisions(candles:pd.DataFrame,
+                                 buy_threshold:float=0.20,
+                                 sell_threshold:float=0.80,
+                                 period:int=20)->List[str]:
+    """Generate bollinger band decisions."""
+    _,_,_,_,percentB = bollinger_bands(candles["close"],period)
+
+    decisions = np.where(percentB > sell_threshold,"SELL",'HOLD')
+    decisions = np.where(percentB < buy_threshold,"BUY",decisions)
+
+    return decisions
+
+
+def generate_stochastic_decisions(candles:pd.DataFrame,
+                                  buy_threshold:float=20,
+                                  sell_threshold:float=80,
+                                  period:int=3):
+    indicator = stochastic_oscillator(candles,period)
+
+    decisions = np.where(indicator > sell_threshold,"SELL",'HOLD')
+    decisions = np.where(indicator < buy_threshold,"BUY",decisions)
+
+    return decisions

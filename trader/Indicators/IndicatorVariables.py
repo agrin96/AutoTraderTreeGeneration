@@ -6,7 +6,9 @@ from .GenerateDecisions import (
     generate_chaikin_decisions,
     generate_macd_decisions,
     generate_mfi_decisions,
-    generate_rsi_decisions)    
+    generate_rsi_decisions,
+    generate_bollinger_decisions,
+    generate_stochastic_decisions)    
 
 
 def create_memo_hash(indicator:Dict)->str:
@@ -156,6 +158,64 @@ indicator_variables = [
             },
             "signal_period": {
                 "value":9,
+                "range":{
+                    "upper":100,
+                    "lower":2,
+                }
+            }
+        }
+    },
+    {
+        "name":"bollinger",
+        "memo":None,
+        "decisions": [],
+        "generator":generate_bollinger_decisions,
+        "variables": {
+            "buy_threshold": {
+                "value":0.20,
+                "range":{
+                    "upper":0.5,
+                    "lower":0.0,
+                }
+            },
+            "sell_threshold": {
+                "value":0.80,
+                "range":{
+                    "upper":1.0,
+                    "lower":0.5,
+                }
+            },
+            "period": {
+                "value":20,
+                "range":{
+                    "upper":100,
+                    "lower":2,
+                }
+            }
+        }
+    },
+    {
+        "name":"stochastic",
+        "memo":None,
+        "decisions": [],
+        "generator":generate_stochastic_decisions,
+        "variables": {
+            "buy_threshold": {
+                "value":20,
+                "range":{
+                    "upper":50,
+                    "lower":0,
+                }
+            },
+            "sell_threshold": {
+                "value":80,
+                "range":{
+                    "upper":100,
+                    "lower":50,
+                }
+            },
+            "period": {
+                "value":3,
                 "range":{
                     "upper":100,
                     "lower":2,

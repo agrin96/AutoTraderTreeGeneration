@@ -15,11 +15,19 @@ def pprint_generation_statistics(pops:List[Dict],
     output += F" Balance: {best['balance']} Trades: {best['trades']}"
     print("\t"+str(output))
     
-    print("\n\tAverage Balance and Fitness of Trees")
+    print("\n\tPopulation Statistics")
     mean_fitness = np.mean(list(map(lambda k: k["fitness"],pops)))
     mean_balance = np.mean(list(map(lambda k: k["balance"],pops)))
     print(F"\t\tMean Fitness: {mean_fitness}")
     print(F"\t\tMean Balance: {mean_balance}")
+    lowestf = min(pops,key=lambda k: k["fitness"])["fitness"]
+    lowestb = min(pops,key=lambda k: k["balance"])["balance"]
+    print(F"\t\tLowest Fitness: {lowestf}")
+    print(F"\t\tLowest Balance: {lowestb}")
+    f_var = np.var(list(map(lambda k: k["fitness"],pops)))
+    b_var = np.var(list(map(lambda k: k["balance"],pops)))
+    print(F"\t\tFitness Variance: {f_var}")
+    print(F"\t\tBalance Variance: {b_var}")
 
     print("\n\tAverage Tree Depth")
     depth = np.mean(list(map(lambda t: tree_depth(t["tree"]),pops)))

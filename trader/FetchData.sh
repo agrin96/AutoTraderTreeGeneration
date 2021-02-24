@@ -1,0 +1,1 @@
+scp root@139.59.225.69:/root/*_ticker.csv ./Data/

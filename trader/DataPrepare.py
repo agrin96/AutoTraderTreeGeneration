@@ -105,7 +105,7 @@ def convert_ticker_to_candles(ticker:pd.DataFrame,
         temp = prices[o:c+1]
         highs.append(np.max(temp))
         lows.append(np.min(temp))
-        volumes.append(np.sum(volume_data[o:c]))
+        volumes.append(np.sum(volume_data[o:c+1]))
         elements.append(len(temp))
 
     candles = pd.DataFrame()
