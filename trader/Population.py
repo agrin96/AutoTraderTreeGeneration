@@ -67,6 +67,7 @@ def population_fitness(config:Dict,
                        pops:List[Dict],
                        decisions:List[List[str]],
                        data:pd.DataFrame,
+                       prices:pd.DataFrame,
                        pool:Pool=None)->Tuple:
     """Uses the previously evaluated decisions to generate scores for each
     buy/sell pair. These are stores as balance and trades. Then calculates the
@@ -75,19 +76,23 @@ def population_fitness(config:Dict,
     starting_funds = config["evaluation"]["initial_funds"]
     trading_fee = config["evaluation"]["trading_fee_percent"]
     max_depth = config["population"]["max_tree_depth"]
+    candle_period = config["candle_period"]
 
     args = [[starting_funds,
             trading_fee,
             dset,
-            data["close"].values] for dset in decisions]
+            data[["index","close"]],
+            prices,
+            candle_period] for dset in decisions]
     scores = pool.starmap(score_decisions,args)\
              if pool\
              else [score_decisions(*a) for a in args]
     
     for score,pop in zip(scores,pops):
-        balance,trades = score
+        balance,gain_trades,lose_trades = score
         pop["balance"] = balance
-        pop["trades"] = trades
+        pop["gtrades"] = gain_trades
+        pop["ltrades"] = lose_trades
 
     long_balance = natural_price_increase(config,data)
 

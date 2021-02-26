@@ -12,7 +12,8 @@ def pprint_generation_statistics(pops:List[Dict],
     best = max(pops,key=lambda k: k["fitness"])
     
     output = F"POPID: {best['popid']} Fitness: {best['fitness']}"
-    output += F" Balance: {best['balance']} Trades: {best['trades']}"
+    output += F" Balance: {best['balance']} Gain Trades: {best['gtrades']}"
+    output += F" Lose Trades: {best['ltrades']}"
     print("\t"+str(output))
     
     print("\n\tPopulation Statistics")

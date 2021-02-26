@@ -101,5 +101,29 @@ def main():
 			print("\t" + str(p))
 	print("END Showing clusters.")
 
+
+def test_where():
+	coin_balance = 0.02
+	bought_balance = 100.0
+
+	take_profit = 1.005
+	stop_loss = 0.97
+	stop_time = 900
+
+	fee = 0.001
+	period_prices = np.random.rand(900)*10000
+	
+	estimations = coin_balance*period_prices*(1-fee)
+
+	take = np.where(estimations>=take_profit*bought_balance)[0]
+	stop = np.where(estimations<=stop_loss*bought_balance)[0]
+	print(take)
+	print(stop)
+	take_idx = stop_time if len(take) == 0 else take[0]
+	stop_idx = stop_time if len(stop) == 0 else stop[0]
+	print(take_idx)
+	print(stop_idx)
+
 if __name__ == "__main__":
-	main()
+	test_where()
+	# main()

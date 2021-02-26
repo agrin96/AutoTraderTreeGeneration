@@ -75,6 +75,8 @@ def main(config:Dict):
     candle_period = config["candle_period"]
 
     ticker = prepare_raw_data(data_path="./Data/BTCUSDT_ticker.csv")
+
+    live_prices = ticker[["best_bid","best_ask"]]
     candles = convert_ticker_to_candles(ticker=ticker,period=candle_period)
     all_train,test = continuos_train_test_split(candles,split=0.5)
     train = all_train
@@ -118,7 +120,7 @@ def main(config:Dict):
 
         print("|-Calculating Fitness")
         start = time()
-        pops = population_fitness(config,pops,decisions,train,reusable_pool)
+        pops = population_fitness(config,pops,decisions,train,live_prices,reusable_pool)
         scoring_time.append(time()-start)
 
         print("|-Clustering Speciation")
@@ -158,10 +160,9 @@ def main(config:Dict):
     print("\n\nEvaluating Best Members on Test Dataset")
     print("|-Long position baseline.")
     print(F"\tbalance: {natural_price_increase(config,test)}\n")
-    print(test)
-    # return
+
     decisions = population_evaluation(pops,test,evaluation_memo,reusable_pool)
-    pops = population_fitness(config,pops,decisions,test,reusable_pool)
+    pops = population_fitness(config,pops,decisions,test,live_prices,reusable_pool)
 
     # Get the most fit members of each
     best = max(pops,key=lambda k: k["fitness"])
@@ -171,7 +172,8 @@ def main(config:Dict):
         store_serialized_pop(serial_pop=serialize_tree(best["tree"]))
     
     output = F"POPID: {best['popid']} Fitness: {best['fitness']}"
-    output += F" Balance: {best['balance']} Trades: {best['trades']}"
+    output += F" Balance: {best['balance']} Gain Trades: {best['gtrades']}"
+    output += F" Lose Trades: {best['ltrades']}"
     print("\t"+str(output))
     pprint_tree(best["tree"])
 

@@ -27,8 +27,8 @@ def double_crossover_reproduction(treeA:Node,
     child_a = clone_node(treeA)
     child_b = clone_node(treeB)
     
-    cross_a = get_random_node(child_a)
-    cross_b = get_random_node(child_b)
+    cross_a = get_random_node(child_a,include_terminals=False)
+    cross_b = get_random_node(child_b,include_terminals=False)
     
     parent_a = cross_a.get_parent()
     parent_b = cross_b.get_parent()
