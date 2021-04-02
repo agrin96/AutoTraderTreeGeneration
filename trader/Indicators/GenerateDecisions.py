@@ -12,11 +12,7 @@ from .Indicators import (
     simple_moving_average,
     array_shift,
     moving_average_convergance_divergance,
-    stochastic_oscillator,
-    bollinger_bands)
-
-# def generate_obv_decisions(candles:pd.DataFrame)
-
+    stochastic_oscillator)
 
 def generate_bop_decisions(candles:pd.DataFrame,
                            buy_threshold:float=-0.24,
@@ -126,10 +122,11 @@ def generate_macd_decisions(candles:pd.DataFrame,
 
 
 def generate_stochastic_decisions(candles:pd.DataFrame,
+                                  period:int=14,
+                                  signal_period:int=3,
                                   buy_threshold:float=20,
-                                  sell_threshold:float=80,
-                                  period:int=3):
-    indicator = stochastic_oscillator(candles,period)
+                                  sell_threshold:float=80):
+    indicator = stochastic_oscillator(candles,period,signal_period)
 
     decisions = np.where(indicator > sell_threshold,"SELL",'HOLD')
     decisions = np.where(indicator < buy_threshold,"BUY",decisions)

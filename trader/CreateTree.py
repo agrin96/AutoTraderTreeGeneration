@@ -32,7 +32,8 @@ def recursive_tree_creation(
     
     # Add the nonleaf children
     for _ in terminals:
-        node = Node(deepcopy(np.random.choice(vars_available)))
+        selection = randomize_variable(np.random.choice(vars_available))
+        node = Node(selection)
         parent.add_child(node)
 
         recursive_tree_creation(parent=node,
@@ -58,7 +59,8 @@ def create_tree(
         raise RuntimeError("Minimum tree depth is 2 for stumps.")
 
     selection = np.random.choice(variables)
-    root = Node(variable=deepcopy(selection))
+    selection = randomize_variable(selection)
+    root = Node(variable=selection)
 
     recursive_tree_creation(
         parent=root,
@@ -108,3 +110,24 @@ def create_indicator_tree(variables:Dict,
         "balance": None,
         "cluster": None,
         "coordinate": None}
+
+
+def randomize_variable(selection:Dict)->Dict:
+    selection = deepcopy(selection)
+    for k,v in selection["variables"].items():
+        low = v["range"]["lower"]
+        high = v["range"]["upper"]
+
+        modulator = 1
+        is_float = False
+        if high - low == 2 or high - low == 1 or (0 < high - low < 1):
+            modulator = 100
+            is_float = True
+
+        # This is cleaner than using the random floats which can be ridiculous
+        # in their length.
+        new_value = np.random.randint(low*modulator,high*modulator) / modulator
+        new_value = float(new_value) if is_float else int(new_value)
+
+        selection["variables"][k]["value"] = new_value
+    return selection

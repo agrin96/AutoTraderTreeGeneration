@@ -4,7 +4,7 @@ import numpy as np
 import sys
 from copy import deepcopy
 
-sys.path.append("../Indicators")
+sys.path.append("../")
 
 from Indicators.IndicatorVariables import indicator_variables
 from .BaseNode import BaseNode

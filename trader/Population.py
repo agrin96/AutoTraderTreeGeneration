@@ -67,7 +67,8 @@ def population_fitness(config:Dict,
                        pops:List[Dict],
                        decisions:List[List[str]],
                        data:pd.DataFrame,
-                       pool:Pool=None)->Tuple:
+                       pool:Pool=None,
+                       final:bool=False)->Tuple:
     """Uses the previously evaluated decisions to generate scores for each
     buy/sell pair. These are stores as balance and trades. Then calculates the
     fitness values using the score information.
@@ -85,9 +86,11 @@ def population_fitness(config:Dict,
              else [score_decisions(*a) for a in args]
     
     for score,pop in zip(scores,pops):
-        balance,trades = score
+        balance,gain_trades,lose_trades,invalid_trades = score
         pop["balance"] = balance
-        pop["trades"] = trades
+        pop["gtrades"] = gain_trades
+        pop["ltrades"] = lose_trades
+        pop["itrades"] = invalid_trades
 
     long_balance = natural_price_increase(config,data)
 

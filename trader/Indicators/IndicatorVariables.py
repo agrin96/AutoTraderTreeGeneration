@@ -7,7 +7,6 @@ from .GenerateDecisions import (
     generate_macd_decisions,
     generate_mfi_decisions,
     generate_rsi_decisions,
-    generate_bollinger_decisions,
     generate_stochastic_decisions)    
 
 
@@ -186,6 +185,13 @@ indicator_variables = [
                 }
             },
             "period": {
+                "value":14,
+                "range":{
+                    "upper":100,
+                    "lower":2,
+                }
+            },
+            "signal_period": {
                 "value":3,
                 "range":{
                     "upper":100,

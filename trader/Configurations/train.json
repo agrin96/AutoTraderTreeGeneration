@@ -1,30 +1,30 @@
 {
-    "save_best":false,
-    "process_pool_size":1,
-    "generations": 1,
+    "save_best":true,
+    "process_pool_size":3,
+    "generations": 100,
     "candle_period": 300,
     "training":{
         "traintest_split":0.6,
-        "train_sampling_split":0.5,
-        "rotation_interval":10,
+        "train_sampling_split":0.75,
+        "rotation_interval":20,
         "rotate_training_data":true,
         "training_sets":2
     },
     "population":{
-        "initial_population":20,
-        "max_population":20,
+        "initial_population":300,
+        "max_population":300,
         "initial_tree_depth":3,
         "max_tree_depth":15
     },
     "mutation":{
-        "mutation_rate":0.75,
+        "mutation_rate":0.40,
         "mutation_types": {
             "replace":0.50,
-            "insert_node":0.50,
+            "insert_node":0.25,
             "insert_terminal":0.30,
-            "parameter":0.70
+            "parameter":0.50
         },
-        "alphas":6
+        "alphas":3
     },
     "evaluation":{
         "initial_funds":100,
@@ -32,11 +32,11 @@
     },
     "selection":{
         "tournament_size":10,
-        "survivors_percent": 0.25,
+        "survivors_percent": 0.40,
         "search_distance_modifier":0.25
     },
     "crossover":{
-        "crossover_rate":0.75
+        "crossover_rate":0.50
     },
     "data_file_path":"./Data/BTCUSDT_ticker.csv",
     "terminals":["BUY","HOLD","SELL"]

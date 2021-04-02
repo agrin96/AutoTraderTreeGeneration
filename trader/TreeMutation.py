@@ -8,7 +8,7 @@ from Common import random_choice
 from DataStructures.Node import Node
 from DataStructures.Terminal import Terminal
 
-from CreateTree import create_stump
+from CreateTree import create_stump,randomize_variable
     
 from TreeActions import (
     get_random_node,
@@ -49,21 +49,25 @@ def point_mutate(
     chosen = get_random_node(tree,include_root=True)
     
     if random_choice(prob_true=mutation_types["replace"]):
-        chosen = get_random_node(tree,include_root=True)
-        new_node = replace_with_node(chosen,unused_variables,terminals)
-        tree = new_node if new_node else tree
+        chosen = get_random_node(tree,include_root=True,include_terminals=False)
+        if chosen:
+            new_node = replace_with_node(chosen,unused_variables,terminals)
+            tree = new_node if new_node else tree
 
     if random_choice(prob_true=mutation_types["insert_node"]):
         chosen = get_random_node(tree)
-        insert_node(chosen,unused_variables,terminals)
+        if chosen:
+            insert_node(chosen,unused_variables,terminals)
 
     if random_choice(prob_true=mutation_types["insert_terminal"]):
-        chosen = get_random_node(tree)
-        replace_with_terminal(chosen,terminals)
+        chosen = get_random_node(tree,include_terminals=False)
+        if chosen:
+            replace_with_terminal(chosen,terminals)
 
     if random_choice(prob_true=mutation_types["parameter"]):
         chosen = get_random_node(tree,include_root=True,include_terminals=False)
-        mutate_indicator_parameters(chosen)
+        if chosen:
+            mutate_indicator_parameters(chosen)
     
     pop["tree"] = tree
     return pop
@@ -109,12 +113,13 @@ def replace_with_node(node:Node,variables:List[Dict],terminals:List[str])->Node:
     """Replace a node in the tree with a node inplace or replace a terminal
     with a node stump. This is an expansion operation since it generally leads
     to growing the tree."""
-    selection = np.random.choice(variables)
+    selection = randomize_variable(np.random.choice(variables))
+    
     if isinstance(node,Terminal):
         replacement = create_stump(selection,terminals)
         return replace_node(node,new_node=replacement)
     else:
-        replacement = Node(deepcopy(selection))
+        replacement = Node(selection)
         return replace_node(node,new_node=replacement)
 
 
@@ -123,10 +128,21 @@ def insert_node(node:Node,variables:List[Dict],terminals:List[str]):
     not be a root."""
     parent = node.get_parent()
 
-    insertion = Node(deepcopy(np.random.choice(variables)))
+    selection = randomize_variable(np.random.choice(variables))
+    insertion = Node(selection)
     idx = parent.remove_child(node)
     parent.add_child(insertion,idx)
-
-    insertion.add_child(node)
-    insertion.add_child(Terminal(terminals[1]))
-    insertion.add_child(Terminal(terminals[2]))
+    
+    # Since our terminal positions matter we need to add them in the right order
+    if idx == 0:
+        insertion.add_child(node)
+        insertion.add_child(Terminal(terminals[1]))
+        insertion.add_child(Terminal(terminals[2]))
+    elif idx == 1:
+        insertion.add_child(Terminal(terminals[0]))
+        insertion.add_child(node)
+        insertion.add_child(Terminal(terminals[2]))
+    elif idx == 2:
+        insertion.add_child(Terminal(terminals[0]))
+        insertion.add_child(Terminal(terminals[1]))
+        insertion.add_child(node)

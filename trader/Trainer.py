@@ -33,7 +33,9 @@ from TreeIO import (
     deserialize_tree)
 
 from TreeEvaluation import natural_price_increase
-from Reporting import pprint_generation_statistics
+from Reporting import (
+    pprint_generation_statistics,
+    plot_decisions)
 
 from Population import (
     population_initialization,
@@ -43,7 +45,7 @@ from Population import (
     population_reproduction,
     population_selection)
 
-from Indicators.IndicatorVariables import indicator_variables,create_memo_hash
+from Indicators.IndicatorVariables import indicator_variables
 
 # ----------------------- GLOBALS ----------------------- #
 from multiprocessing import Pool
@@ -73,10 +75,11 @@ def main(config:Dict):
     global reusable_pool,evaluation_memo
     runtime_start = time()
     candle_period = config["candle_period"]
+    split = config["training"]["traintest_split"]
 
     ticker = prepare_raw_data(data_path="./Data/BTCUSDT_ticker.csv")
     candles = convert_ticker_to_candles(ticker=ticker,period=candle_period)
-    all_train,test = continuos_train_test_split(candles,split=0.5)
+    all_train,test = continuos_train_test_split(candles,split=split)
     train = all_train
 
     # Decide if we will do any sampling of the training set.
@@ -158,8 +161,7 @@ def main(config:Dict):
     print("\n\nEvaluating Best Members on Test Dataset")
     print("|-Long position baseline.")
     print(F"\tbalance: {natural_price_increase(config,test)}\n")
-    print(test)
-    # return
+
     decisions = population_evaluation(pops,test,evaluation_memo,reusable_pool)
     pops = population_fitness(config,pops,decisions,test,reusable_pool)
 
@@ -171,7 +173,9 @@ def main(config:Dict):
         store_serialized_pop(serial_pop=serialize_tree(best["tree"]))
     
     output = F"POPID: {best['popid']} Fitness: {best['fitness']}"
-    output += F" Balance: {best['balance']} Trades: {best['trades']}"
+    output += F" Balance: {best['balance']} Gain Trades: {best['gtrades']}"
+    output += F" Lose Trades: {best['ltrades']}"
+    output += F" Invalid Trades: {best['itrades']}"
     print("\t"+str(output))
     pprint_tree(best["tree"])
 
@@ -186,6 +190,8 @@ def main(config:Dict):
     print("|-------------------------------------------------------------|\n")
 
     print(F"\n\tTotal Runtime: {(time() - runtime_start)/3600} hours\n")
+
+    plot_decisions(best,candles,candle_period,display_range=(0,-1))
 
 
 

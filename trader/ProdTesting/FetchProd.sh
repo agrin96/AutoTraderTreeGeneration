@@ -1,0 +1,2 @@
+scp root@128.199.47.14:/root/moonbot/MoonBot/buffers/btcusdt_candles.csv /Users/agrin/Documents/Programming/AutoTraderRules/src/Trader/Data/prod_test_candles.csv
+scp root@128.199.47.14:/root/moonbot/MoonBot/SerializedTrees/popfile-0.json /Users/agrin/Documents/Programming/AutoTraderRules/src/Trader/ProdTesting/ProdTrees/popfile-0.json

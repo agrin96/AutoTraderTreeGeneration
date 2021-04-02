@@ -149,6 +149,8 @@ def get_random_node(node:Node,
 
     if _depth == 1:
         # _nodes = [n for n in _nodes if not n.is_fixed()]
+        if len(_nodes) == 0:
+            return None
         return np.random.choice(_nodes)
 
 

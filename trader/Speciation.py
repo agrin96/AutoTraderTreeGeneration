@@ -76,7 +76,7 @@ def structural_similarity_clustering(population:List[Dict])->List[Dict]:
     pops to find the most similar members until all pops are accounted for.
     Returns the population with the cluster attribute assigned"""
     max_population = len(population)
-    total_clusters = max(len(population)//10,4)
+    total_clusters = max(len(population)//50,4)
     clustered = []
 
     # choose some pops randomly as cluster centers and remove them from the pool

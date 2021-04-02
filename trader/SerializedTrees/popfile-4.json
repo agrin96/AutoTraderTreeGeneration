@@ -1,0 +1,399 @@
+{
+  "parent": {
+    "type": "NODE",
+    "variable": {
+      "name": "bop",
+      "variables": {
+        "buy_threshold": {
+          "value": -0.87,
+          "range": {
+            "upper": 0,
+            "lower": -1
+          }
+        },
+        "sell_threshold": {
+          "value": 0.17,
+          "range": {
+            "upper": 1,
+            "lower": 0
+          }
+        },
+        "period": {
+          "value": 38,
+          "range": {
+            "upper": 100,
+            "lower": 2
+          }
+        }
+      }
+    }
+  },
+  "children": [
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": {
+          "name": "bop",
+          "variables": {
+            "buy_threshold": {
+              "value": -0.51,
+              "range": {
+                "upper": 0,
+                "lower": -1
+              }
+            },
+            "sell_threshold": {
+              "value": 0.39,
+              "range": {
+                "upper": 1,
+                "lower": 0
+              }
+            },
+            "period": {
+              "value": 95,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "type": "TERMINAL",
+          "variable": "BUY",
+          "fixed": false
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "HOLD",
+          "fixed": false
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "SELL",
+          "fixed": false
+        }
+      ]
+    },
+    {
+      "parent": {
+        "type": "NODE",
+        "variable": {
+          "name": "bop",
+          "variables": {
+            "buy_threshold": {
+              "value": -0.91,
+              "range": {
+                "upper": 0,
+                "lower": -1
+              }
+            },
+            "sell_threshold": {
+              "value": 0.2,
+              "range": {
+                "upper": 1,
+                "lower": 0
+              }
+            },
+            "period": {
+              "value": 48,
+              "range": {
+                "upper": 100,
+                "lower": 2
+              }
+            }
+          }
+        }
+      },
+      "children": [
+        {
+          "type": "TERMINAL",
+          "variable": "BUY",
+          "fixed": false
+        },
+        {
+          "parent": {
+            "type": "NODE",
+            "variable": {
+              "name": "rsi",
+              "variables": {
+                "buy_threshold": {
+                  "value": 53,
+                  "range": {
+                    "upper": 100,
+                    "lower": 50
+                  }
+                },
+                "sell_threshold": {
+                  "value": 3,
+                  "range": {
+                    "upper": 50,
+                    "lower": 0
+                  }
+                },
+                "period": {
+                  "value": 66,
+                  "range": {
+                    "upper": 100,
+                    "lower": 2
+                  }
+                }
+              }
+            }
+          },
+          "children": [
+            {
+              "type": "TERMINAL",
+              "variable": "BUY",
+              "fixed": false
+            },
+            {
+              "parent": {
+                "type": "NODE",
+                "variable": {
+                  "name": "bop",
+                  "variables": {
+                    "buy_threshold": {
+                      "value": -0.36,
+                      "range": {
+                        "upper": 0,
+                        "lower": -1
+                      }
+                    },
+                    "sell_threshold": {
+                      "value": 0.15,
+                      "range": {
+                        "upper": 1,
+                        "lower": 0
+                      }
+                    },
+                    "period": {
+                      "value": 57,
+                      "range": {
+                        "upper": 100,
+                        "lower": 2
+                      }
+                    }
+                  }
+                }
+              },
+              "children": [
+                {
+                  "type": "TERMINAL",
+                  "variable": "BUY",
+                  "fixed": false
+                },
+                {
+                  "parent": {
+                    "type": "NODE",
+                    "variable": {
+                      "name": "stochastic",
+                      "variables": {
+                        "buy_threshold": {
+                          "value": 5,
+                          "range": {
+                            "upper": 50,
+                            "lower": 0
+                          }
+                        },
+                        "sell_threshold": {
+                          "value": 69,
+                          "range": {
+                            "upper": 100,
+                            "lower": 50
+                          }
+                        },
+                        "period": {
+                          "value": 5,
+                          "range": {
+                            "upper": 100,
+                            "lower": 2
+                          }
+                        },
+                        "signal_period": {
+                          "value": 91,
+                          "range": {
+                            "upper": 100,
+                            "lower": 2
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "children": [
+                    {
+                      "type": "TERMINAL",
+                      "variable": "BUY",
+                      "fixed": false
+                    },
+                    {
+                      "parent": {
+                        "type": "NODE",
+                        "variable": {
+                          "name": "rsi",
+                          "variables": {
+                            "buy_threshold": {
+                              "value": 67,
+                              "range": {
+                                "upper": 100,
+                                "lower": 50
+                              }
+                            },
+                            "sell_threshold": {
+                              "value": 49,
+                              "range": {
+                                "upper": 50,
+                                "lower": 0
+                              }
+                            },
+                            "period": {
+                              "value": 15,
+                              "range": {
+                                "upper": 100,
+                                "lower": 2
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "children": [
+                        {
+                          "type": "TERMINAL",
+                          "variable": "BUY",
+                          "fixed": false
+                        },
+                        {
+                          "type": "TERMINAL",
+                          "variable": "HOLD",
+                          "fixed": false
+                        },
+                        {
+                          "parent": {
+                            "type": "NODE",
+                            "variable": {
+                              "name": "mfi",
+                              "variables": {
+                                "buy_threshold": {
+                                  "value": 88,
+                                  "range": {
+                                    "upper": 100,
+                                    "lower": 50
+                                  }
+                                },
+                                "sell_threshold": {
+                                  "value": 49,
+                                  "range": {
+                                    "upper": 50,
+                                    "lower": 0
+                                  }
+                                },
+                                "period": {
+                                  "value": 84,
+                                  "range": {
+                                    "upper": 100,
+                                    "lower": 2
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "children": [
+                            {
+                              "type": "TERMINAL",
+                              "variable": "BUY",
+                              "fixed": false
+                            },
+                            {
+                              "type": "TERMINAL",
+                              "variable": "HOLD",
+                              "fixed": false
+                            },
+                            {
+                              "type": "TERMINAL",
+                              "variable": "SELL",
+                              "fixed": false
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "parent": {
+                        "type": "NODE",
+                        "variable": {
+                          "name": "macd",
+                          "variables": {
+                            "fast_period": {
+                              "value": 29,
+                              "range": {
+                                "upper": 100,
+                                "lower": 2
+                              }
+                            },
+                            "slow_period": {
+                              "value": 64,
+                              "range": {
+                                "upper": 100,
+                                "lower": 2
+                              }
+                            },
+                            "signal_period": {
+                              "value": 73,
+                              "range": {
+                                "upper": 100,
+                                "lower": 2
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "children": [
+                        {
+                          "type": "TERMINAL",
+                          "variable": "BUY",
+                          "fixed": false
+                        },
+                        {
+                          "type": "TERMINAL",
+                          "variable": "HOLD",
+                          "fixed": false
+                        },
+                        {
+                          "type": "TERMINAL",
+                          "variable": "SELL",
+                          "fixed": false
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "TERMINAL",
+                  "variable": "SELL",
+                  "fixed": false
+                }
+              ]
+            },
+            {
+              "type": "TERMINAL",
+              "variable": "SELL",
+              "fixed": false
+            }
+          ]
+        },
+        {
+          "type": "TERMINAL",
+          "variable": "SELL",
+          "fixed": false
+        }
+      ]
+    },
+    {
+      "type": "TERMINAL",
+      "variable": "SELL",
+      "fixed": false
+    }
+  ]
+}
